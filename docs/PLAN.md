@@ -16,7 +16,7 @@ Update this list in the same commit that finishes each item.
 - [x] Toolchain check (Node 18+, npm, Foundry)
 - [x] Scaffold `/contracts` (Foundry + OpenZeppelin) and `/web` (Next.js + wagmi + viem + RainbowKit, Arc testnet chain)
 - [x] `SnippetLicenses` contract + Foundry tests passing (26 tests incl. fuzz + reentrancy)
-- [ ] README with fresh-laptop setup steps
+- [x] README with fresh-laptop setup steps
 
 **Tue: chain + buy flow**
 - [ ] Contract deployed to Arc testnet and verified on the explorer
