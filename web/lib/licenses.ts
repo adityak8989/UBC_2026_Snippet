@@ -1,4 +1,4 @@
-import { parseEventLogs, toHex, type PublicClient } from "viem";
+import { decodeEventLog, parseEventLogs, toHex, type PublicClient } from "viem";
 import { SnippetLicensesAbi } from "./abi";
 import { SNIPPET_LICENSES_ADDRESS } from "./arc";
 
@@ -49,4 +49,47 @@ export async function findLicenseTx(
   if (!res.ok) return null;
   const json = (await res.json()) as { result?: { transactionHash?: `0x${string}` }[] };
   return json.result?.[0]?.transactionHash ?? null;
+}
+
+export interface SoldLicense {
+  licenseId: bigint;
+  buyer: `0x${string}`;
+  useType: number;
+  price: bigint;
+  timestamp: bigint;
+}
+
+// Every license sold for one clip, oldest first, from the explorer's index of LicenseIssued events.
+export async function fetchClipLicenses(clipId: `0x${string}`): Promise<SoldLicense[]> {
+  const params = new URLSearchParams({
+    module: "logs",
+    action: "getLogs",
+    address: SNIPPET_LICENSES_ADDRESS,
+    fromBlock: "0",
+    toBlock: "latest",
+    topic0: LICENSE_ISSUED_TOPIC,
+    topic2: clipId,
+    topic0_2_opr: "and",
+  });
+  const res = await fetch(`${EXPLORER_API}?${params}`);
+  if (!res.ok) throw new Error(`Explorer returned ${res.status}`);
+  const json = (await res.json()) as { result?: { topics: (`0x${string}` | null)[]; data: `0x${string}` }[] | string };
+  if (!Array.isArray(json.result)) return [];
+  return json.result
+    .map((log) => {
+      const { args } = decodeEventLog({
+        abi: SnippetLicensesAbi,
+        eventName: "LicenseIssued",
+        topics: log.topics.filter((t): t is `0x${string}` => !!t) as [`0x${string}`, ...`0x${string}`[]],
+        data: log.data,
+      });
+      return {
+        licenseId: args.licenseId,
+        buyer: args.buyer,
+        useType: args.useType,
+        price: args.price,
+        timestamp: args.timestamp,
+      };
+    })
+    .sort((a, b) => (a.licenseId < b.licenseId ? -1 : 1));
 }
