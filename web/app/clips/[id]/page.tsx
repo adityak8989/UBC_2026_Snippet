@@ -4,7 +4,15 @@ import { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import {
+  useAccount,
+  useReadContract,
+  useSwitchChain,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import { friendlyTxError } from "@/lib/errors";
+import { useIsClient } from "@/lib/useIsClient";
 import { parseEventLogs, parseUnits } from "viem";
 import { PurchaseReceipt } from "@/components/PurchaseReceipt";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -28,15 +36,32 @@ const USE_TYPE_LABEL: Record<UseType, string> = {
 
 export default function ClipDetailPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center p-8 text-muted">
-          Loading clip details...
-        </div>
-      }
-    >
+    <Suspense fallback={<ClipSkeleton />}>
       <ClipDetailContent />
     </Suspense>
+  );
+}
+
+function ClipSkeleton() {
+  return (
+    <div className="flex min-h-screen flex-col" aria-label="Loading clip">
+      <div className="h-16 border-b border-line" />
+      <div className="mx-auto grid w-full max-w-6xl animate-pulse grid-cols-1 gap-8 px-4 py-8 lg:grid-cols-12">
+        <div className="flex flex-col gap-4 lg:col-span-7">
+          <div className="aspect-video rounded-2xl bg-surface" />
+          <div className="h-4 w-1/3 rounded bg-surface" />
+          <div className="h-8 w-3/4 rounded bg-surface" />
+          <div className="h-4 w-full rounded bg-surface" />
+        </div>
+        <div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-6 lg:col-span-5">
+          <div className="h-6 w-1/2 rounded bg-surface-2" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-20 rounded-xl bg-surface-2" />
+          ))}
+          <div className="h-12 rounded-xl bg-surface-2" />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -46,7 +71,12 @@ function ClipDetailContent() {
 
   const [selectedTier, setSelectedTier] = useState<UseType>("social");
 
-  const { isConnected, address } = useAccount();
+  // Wallet state only after hydration, so the first client render matches the server HTML.
+  const { isConnected: walletConnected, address, chainId } = useAccount();
+  const isClient = useIsClient();
+  const isConnected = isClient && walletConnected;
+  const { switchChain, isPending: isSwitching } = useSwitchChain();
+  const wrongNetwork = isConnected && chainId !== ARC_TESTNET_CHAIN_ID;
 
   // Price calculations
   const priceUsd = clip ? clip.prices[selectedTier] : 0;
@@ -149,6 +179,10 @@ function ClipDetailContent() {
   }, [isApproveSuccess, isBuySuccess, refetchAllowance, refetchBalance]);
 
   const txError = approveError || approveReceiptError || buyError || buyReceiptError;
+  const friendlyError = txError ? friendlyTxError(txError) : undefined;
+
+  // Arc also takes the network fee in USDC, so the price alone must at least fit the balance.
+  const notEnoughUsdc = usdcBalance !== undefined && usdcBalance < priceUnits && !isBuySuccess;
 
   if (!clip) {
     return (
@@ -361,14 +395,44 @@ function ClipDetailContent() {
                     The UI and video catalog are fully ready. Deploying `SnippetLicenses` to Arc testnet (Step 4) will activate the onchain buy transactions.
                   </p>
                 </div>
+              ) : wrongNetwork ? (
+                <div className="flex flex-col gap-3 rounded-xl border border-primary/40 bg-primary/10 p-4 text-sm" role="alert">
+                  <p className="font-semibold">Your wallet is on another network.</p>
+                  <p className="text-xs text-muted">Snippet runs on Arc Testnet. Switch networks to buy this license.</p>
+                  <button
+                    type="button"
+                    onClick={() => switchChain({ chainId: ARC_TESTNET_CHAIN_ID })}
+                    disabled={isSwitching}
+                    className="w-full cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-bg hover:opacity-90 disabled:opacity-50"
+                  >
+                    {isSwitching ? "Check your wallet..." : "Switch to Arc Testnet"}
+                  </button>
+                </div>
               ) : (
                 <div className="flex flex-col gap-3">
+                  {notEnoughUsdc && (
+                    <div className="flex flex-col gap-1 rounded-xl border border-primary/40 bg-primary/10 p-4 text-sm" role="alert">
+                      <p className="font-semibold">Not enough USDC for this license.</p>
+                      <p className="text-xs text-muted">
+                        You have ${formattedBalance} USDC and this license costs ${priceUsd} USDC, plus a small network fee.
+                      </p>
+                      <a
+                        href="https://faucet.circle.com"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 w-fit text-xs font-semibold text-primary underline"
+                      >
+                        Get free testnet USDC at faucet.circle.com ↗
+                      </a>
+                    </div>
+                  )}
+
                   {/* Step 1: Approve Button (hidden once this purchase is done) */}
                   {needsApproval && !isBuySuccess && (
                     <button
                       type="button"
                       onClick={handleApprove}
-                      disabled={isApprovePending || isApproveConfirming}
+                      disabled={notEnoughUsdc || isApprovePending || isApproveConfirming}
                       className="w-full cursor-pointer rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
                     >
                       {isApprovePending
@@ -410,7 +474,7 @@ function ClipDetailContent() {
                     <button
                       type="button"
                       onClick={handleBuy}
-                      disabled={needsApproval || isBuyPending || isBuyConfirming}
+                      disabled={notEnoughUsdc || needsApproval || isBuyPending || isBuyConfirming}
                       className="w-full cursor-pointer rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-bg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {isBuyPending
@@ -438,9 +502,10 @@ function ClipDetailContent() {
                     </div>
                   )}
 
-                  {txError && (
-                    <div className="break-words rounded-xl border border-primary/40 bg-primary/10 p-3 text-xs text-ink">
-                      {txError.message}
+                  {friendlyError && (
+                    <div className="break-words rounded-xl border border-primary/40 bg-primary/10 p-3 text-sm" role="alert">
+                      <p className="font-semibold">{friendlyError.title}</p>
+                      {friendlyError.detail && <p className="mt-1 text-xs text-muted">{friendlyError.detail}</p>}
                     </div>
                   )}
                 </div>
