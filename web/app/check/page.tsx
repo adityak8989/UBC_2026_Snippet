@@ -221,6 +221,16 @@ export default function CheckPage() {
               {status.name} · {(status.size / 1_000_000).toFixed(1)} MB · SHA256 {status.hash}
             </p>
           )}
+
+          {(status.kind === "done" || status.kind === "error") && (
+            <button
+              type="button"
+              onClick={() => setStatus({ kind: "idle" })}
+              className="mx-auto cursor-pointer rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-semibold hover:border-muted/60"
+            >
+              Check another file
+            </button>
+          )}
         </section>
       </main>
     </div>

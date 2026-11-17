@@ -81,8 +81,8 @@ function Certificate() {
     timeZone: "UTC",
   });
   const payouts = [
-    { label: "Host", units: license.rhAmount },
-    ...(license.contribAmount > BigInt(0) ? [{ label: "Guest", units: license.contribAmount }] : []),
+    { label: "Creator", units: license.rhAmount },
+    ...(license.contribAmount > BigInt(0) ? [{ label: "Contributor", units: license.contribAmount }] : []),
     { label: "Snippet", units: license.platformAmount },
   ];
 

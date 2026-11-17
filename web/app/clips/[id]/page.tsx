@@ -15,6 +15,7 @@ import { friendlyTxError } from "@/lib/errors";
 import { useIsClient } from "@/lib/useIsClient";
 import { parseEventLogs, parseUnits } from "viem";
 import { PurchaseReceipt } from "@/components/PurchaseReceipt";
+import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getClipById } from "@/lib/clips";
 import { USDC_ADDRESS, USDC_DECIMALS, SNIPPET_LICENSES_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
@@ -163,6 +164,12 @@ function ClipDetailContent() {
       ?.args;
   }, [buyReceipt]);
 
+  // Use types bought on this page this session; their preview loses the watermark (Aditya's idea).
+  const [licensedUseTypes, setLicensedUseTypes] = useState<Set<number>>(() => new Set());
+  const selectedUseType = USE_TYPE_INDEX[selectedTier];
+  const tierLicensed =
+    licensedUseTypes.has(selectedUseType) || (isBuySuccess && issued?.useType === selectedUseType);
+
   // Amount this page last asked the wallet to approve. Once that approval confirms we trust it
   // right away, because the RPC can still return the old allowance for a moment afterwards.
   const [approvedUnits, setApprovedUnits] = useState<bigint | null>(null);
@@ -233,6 +240,7 @@ function ClipDetailContent() {
   // Back to Step 1. The purchase spent the allowance, so read the fresh value before
   // clearing the old transactions; otherwise Buy could briefly show as ready.
   const handleBuyAnother = async () => {
+    if (issued) setLicensedUseTypes((prev) => new Set(prev).add(issued.useType));
     await refetchAllowance();
     resetApprove();
     resetBuy();
@@ -255,7 +263,7 @@ function ClipDetailContent() {
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
           {/* Left Column: Video & Metadata */}
           <div className="flex flex-col gap-6 lg:col-span-7">
-            <div className="aspect-video overflow-hidden rounded-2xl border border-line bg-black">
+            <div className="relative aspect-video overflow-hidden rounded-2xl border border-line bg-black">
               {/* Plays the light preview; the hashed master (clip.videoUrl) is only for download */}
               <video
                 src={clip.previewUrl}
@@ -263,8 +271,11 @@ function ClipDetailContent() {
                 controls
                 playsInline
                 preload="metadata"
+                controlsList="nodownload"
+                onContextMenu={(e) => e.preventDefault()}
                 className="h-full w-full object-contain"
               />
+              {!tierLicensed && <PreviewWatermark detail="Purchase to unlock the master" />}
             </div>
 
             <div className="flex flex-col gap-3">
@@ -272,29 +283,16 @@ function ClipDetailContent() {
                 <span className="font-medium text-primary">{clip.show}</span>
                 <span>•</span>
                 <span>{clip.duration}</span>
-                <span>•</span>
-                <span className="rounded bg-surface-2 px-2 py-0.5 font-medium">{clip.contributorName}</span>
+                {clip.contributorName && (
+                  <>
+                    <span>•</span>
+                    <span className="rounded bg-surface-2 px-2 py-0.5 font-medium">{clip.contributorName}</span>
+                  </>
+                )}
               </div>
 
               <h1 className="font-display text-2xl font-bold sm:text-3xl">{clip.title}</h1>
               <p className="text-muted">{clip.description}</p>
-            </div>
-
-            {/* Cryptographic Proof Card */}
-            <div className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4">
-              <div className="text-xs font-semibold uppercase tracking-wider text-muted">
-                Onchain Verification Footprint
-              </div>
-              <div className="flex flex-col gap-1 text-xs text-muted">
-                <div>
-                  <span className="font-medium">Clip ID (bytes32):</span>{" "}
-                  <code className="break-all font-mono text-[11px] text-ink">{clip.clipIdBytes32}</code>
-                </div>
-                <div>
-                  <span className="font-medium">SHA256 Master Hash:</span>{" "}
-                  <code className="break-all font-mono text-[11px] text-ink">{clip.fileHash}</code>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -365,12 +363,12 @@ function ClipDetailContent() {
               </div>
               <div className="flex flex-col gap-1.5 text-xs text-muted">
                 <div className="flex items-center justify-between">
-                  <span>Host / Rights Holder ({clip.split.rightsHolderBps / 100}%):</span>
+                  <span>Creator / Rights Holder ({clip.split.rightsHolderBps / 100}%):</span>
                   <span className="font-medium text-ink">${rhAmount.toFixed(2)} USDC</span>
                 </div>
                 {clip.split.contributorBps > 0 && (
                   <div className="flex items-center justify-between">
-                    <span>Guest Royalty ({clip.split.contributorBps / 100}%):</span>
+                    <span>Contributor ({clip.split.contributorBps / 100}%):</span>
                     <span className="font-medium text-ink">${contribAmount.toFixed(2)} USDC</span>
                   </div>
                 )}
@@ -452,8 +450,10 @@ function ClipDetailContent() {
                           priceUnits={issued.price}
                           useTypeLabel={Object.values(USE_TYPE_LABEL)[issued.useType] ?? ""}
                           payouts={[
-                            { label: "Host", units: issued.rhAmount },
-                            ...(issued.contribAmount > BigInt(0) ? [{ label: "Guest", units: issued.contribAmount }] : []),
+                            { label: "Creator", units: issued.rhAmount },
+                            ...(issued.contribAmount > BigInt(0)
+                              ? [{ label: "Contributor", units: issued.contribAmount }]
+                              : []),
                             { label: "Snippet", units: issued.platformAmount },
                           ]}
                           txHash={buyTxHash}
