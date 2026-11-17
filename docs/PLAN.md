@@ -12,7 +12,7 @@ Update this list in the same commit that finishes each item.
 
 **Mon: setup**
 - [x] Plan (this file)
-- [ ] CONTRIBUTING.md
+- [x] CONTRIBUTING.md
 - [ ] Toolchain check (Node 18+, npm, Foundry)
 - [ ] Scaffold `/contracts` (Foundry + OpenZeppelin) and `/web` (Next.js + wagmi + viem + RainbowKit, Arc testnet chain)
 - [ ] `SnippetLicenses` contract + Foundry tests passing
