@@ -28,7 +28,7 @@ export default function Home() {
                 href="/check"
                 className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
               >
-                Clearance Checker
+                License Checker
               </Link>
             </nav>
           </div>
