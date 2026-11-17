@@ -15,25 +15,19 @@ Deadline: **Fri Nov 20, submit by 11:00 CST**. Feature freeze: **Wed night**. De
 
 All three payments happen in the buyer's single purchase transaction. The contract never holds money.
 
-## Who owns what on the team
+## Contributing
 
-| Person | Owns |
-|---|---|
-| **Esteban** | Contract, deployment, backend (Supabase, QuickNode Streams webhook, API routes) |
-| **Aditya** | Frontend: pages, buy flow UI, live feed, `/check`, `/licenses` |
-| **Riya** | Testing, recording and cutting the 3 demo clips, demo video, Devpost text |
-
-Branch and PR rules: [CONTRIBUTING.md](../CONTRIBUTING.md). Monday's setup is done: scaffold, contract, and 26 passing tests.
+Anyone can help through a pull request; helpful changes get merged. Branch and PR rules: [CONTRIBUTING.md](../CONTRIBUTING.md). Monday's setup is done: scaffold, contract, and 26 passing tests.
 
 ## Today (Tue Nov 17)
 
-- [ ] **Riya:** record, cut, and hand over the 3 final clip files. Each file's hash goes on-chain and can't change later, so they must be final.
-- [ ] **Esteban:** deploy + list-clips scripts, tested on a local chain
-- [ ] **Esteban:** deploy the contract to Arc testnet, then list the 3 clips once the files are final
-- [ ] **Esteban:** site live on Vercel
-- [ ] **Aditya:** clip page `/clips/[id]`: preview, split breakdown, use-type picker
-- [ ] **Aditya:** buy flow: connect wallet → approve USDC → buy, with pending / confirmed / failed states
-- [ ] **Everyone:** one test purchase on Arc testnet with your own testnet wallet
+- [ ] Record, cut, and finalize the 3 clip files. Each file's hash goes on-chain and can't change later, so they must be final before listing.
+- [ ] Deploy + list-clips scripts, tested on a local chain
+- [ ] Deploy the contract to Arc testnet, then list the 3 clips once the files are final
+- [ ] Site live on Vercel
+- [ ] Clip page `/clips/[id]`: preview, split breakdown, use-type picker
+- [ ] Buy flow: connect wallet → approve USDC → buy, with pending / confirmed / failed states
+- [ ] One test purchase on Arc testnet with a testnet wallet
 
 ## Demo script (~2 min)
 
