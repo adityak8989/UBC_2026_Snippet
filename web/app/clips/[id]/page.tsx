@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits } from "viem";
+import { SiteHeader } from "@/components/SiteHeader";
 import { getClipById } from "@/lib/clips";
 import { USDC_ADDRESS, USDC_DECIMALS, SNIPPET_LICENSES_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
 import { SnippetLicensesAbi, ERC20Abi } from "@/lib/abi";
@@ -22,7 +23,7 @@ export default function ClipDetailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center p-8 text-zinc-500">
+        <div className="flex min-h-screen items-center justify-center p-8 text-muted">
           Loading clip details...
         </div>
       }
@@ -57,9 +58,8 @@ function ClipDetailContent() {
     },
   });
 
-  const formattedBalance = usdcBalance !== undefined
-    ? (Number(usdcBalance) / 10 ** USDC_DECIMALS).toFixed(2)
-    : undefined;
+  const formattedBalance =
+    usdcBalance !== undefined ? (Number(usdcBalance) / 10 ** USDC_DECIMALS).toFixed(2) : undefined;
 
   // Read USDC allowance
   const isContractReady =
@@ -76,14 +76,13 @@ function ClipDetailContent() {
     },
   });
 
-  const needsApproval = isContractReady && (allowance === undefined || allowance < priceUnits);
-
   // Wagmi write hooks
   const {
     data: approveTxHash,
     writeContract: writeApprove,
     isPending: isApprovePending,
     error: approveError,
+    reset: resetApprove,
   } = useWriteContract();
 
   const {
@@ -91,35 +90,51 @@ function ClipDetailContent() {
     writeContract: writeBuy,
     isPending: isBuyPending,
     error: buyError,
+    reset: resetBuy,
   } = useWriteContract();
 
   // Transaction confirmations
-  const { isLoading: isApproveConfirming, isSuccess: isApproveSuccess } =
-    useWaitForTransactionReceipt({
-      hash: approveTxHash,
-    });
+  const {
+    isLoading: isApproveConfirming,
+    isSuccess: isApproveSuccess,
+    error: approveReceiptError,
+  } = useWaitForTransactionReceipt({
+    hash: approveTxHash,
+  });
 
-  const { isLoading: isBuyConfirming, isSuccess: isBuySuccess } =
-    useWaitForTransactionReceipt({
-      hash: buyTxHash,
-    });
+  const {
+    isLoading: isBuyConfirming,
+    isSuccess: isBuySuccess,
+    error: buyReceiptError,
+  } = useWaitForTransactionReceipt({
+    hash: buyTxHash,
+  });
 
-  // Refetch balances and allowance after confirmation
-  if (isApproveSuccess && needsApproval) {
-    refetchAllowance();
-  }
-  if (isBuySuccess) {
-    refetchBalance();
-  }
+  // Amount this page last asked the wallet to approve. Once that approval confirms we trust it
+  // right away, because the RPC can still return the old allowance for a moment afterwards.
+  const [approvedUnits, setApprovedUnits] = useState<bigint | null>(null);
+  const approvalConfirmed = isApproveSuccess && approvedUnits !== null && approvedUnits >= priceUnits;
+
+  const needsApproval =
+    isContractReady && !approvalConfirmed && (allowance === undefined || allowance < priceUnits);
+
+  // Re-read the allowance after an approval (it went up) and after a purchase (it was spent),
+  // and the balance after a purchase.
+  useEffect(() => {
+    if (isApproveSuccess || isBuySuccess) refetchAllowance();
+    if (isBuySuccess) refetchBalance();
+  }, [isApproveSuccess, isBuySuccess, refetchAllowance, refetchBalance]);
+
+  const txError = approveError || approveReceiptError || buyError || buyReceiptError;
 
   if (!clip) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <h1 className="text-2xl font-bold mb-2">Clip Not Found</h1>
-        <p className="text-zinc-500 mb-6">The clip you are looking for does not exist.</p>
+      <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center">
+        <h1 className="mb-2 font-display text-2xl font-bold">Clip Not Found</h1>
+        <p className="mb-6 text-muted">The clip you are looking for does not exist.</p>
         <Link
           href="/"
-          className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-500"
+          className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-bg hover:opacity-90"
         >
           ← Back to Marketplace
         </Link>
@@ -133,6 +148,7 @@ function ClipDetailContent() {
 
   const handleApprove = () => {
     if (!isContractReady) return;
+    setApprovedUnits(priceUnits);
     writeApprove({
       address: USDC_ADDRESS,
       abi: ERC20Abi,
@@ -153,104 +169,84 @@ function ClipDetailContent() {
     });
   };
 
-  return (
-    <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-20 backdrop-blur-md bg-white/80 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm group-hover:bg-blue-500 transition-colors">
-                S
-              </div>
-              <span className="font-bold text-xl tracking-tight">Snippet</span>
-            </Link>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-medium border border-blue-200 dark:border-blue-900">
-              Arc Testnet
-            </span>
-          </div>
-          <ConnectButton showBalance={false} />
-        </div>
-      </header>
+  // Back to Step 1. The purchase spent the allowance, so read the fresh value before
+  // clearing the old transactions; otherwise Buy could briefly show as ready.
+  const handleBuyAnother = async () => {
+    await refetchAllowance();
+    resetApprove();
+    resetBuy();
+    setApprovedUnits(null);
+  };
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 flex flex-col gap-6">
+  return (
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader />
+
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors font-medium w-fit"
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-ink"
         >
           ← Back to Marketplace
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
           {/* Left Column: Video & Metadata */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
-            <div className="bg-black rounded-2xl overflow-hidden aspect-video shadow-md border border-zinc-200 dark:border-zinc-800">
+          <div className="flex flex-col gap-6 lg:col-span-7">
+            <div className="aspect-video overflow-hidden rounded-2xl border border-line bg-black">
               <video
                 src={clip.videoUrl}
                 controls
                 autoPlay
                 playsInline
-                className="w-full h-full object-contain"
+                className="h-full w-full object-contain"
               />
             </div>
 
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2 text-xs text-zinc-500">
-                <span className="font-medium text-blue-600 dark:text-blue-400">
-                  {clip.show}
-                </span>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                <span className="font-medium text-primary">{clip.show}</span>
                 <span>•</span>
                 <span>{clip.duration}</span>
                 <span>•</span>
-                <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded font-medium">
-                  {clip.contributorName}
-                </span>
+                <span className="rounded bg-surface-2 px-2 py-0.5 font-medium">{clip.contributorName}</span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-extrabold">{clip.title}</h1>
-              <p className="text-zinc-600 dark:text-zinc-400">{clip.description}</p>
+              <h1 className="font-display text-2xl font-bold sm:text-3xl">{clip.title}</h1>
+              <p className="text-muted">{clip.description}</p>
             </div>
 
             {/* Cryptographic Proof Card */}
-            <div className="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
-              <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                On-Chain Verification Footprint
+            <div className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted">
+                Onchain Verification Footprint
               </div>
-              <div className="text-xs flex flex-col gap-1 text-zinc-600 dark:text-zinc-400">
+              <div className="flex flex-col gap-1 text-xs text-muted">
                 <div>
-                  <span className="font-medium text-zinc-500">Clip ID (bytes32):</span>{" "}
-                  <code className="font-mono break-all text-[11px]">
-                    {clip.clipIdBytes32}
-                  </code>
+                  <span className="font-medium">Clip ID (bytes32):</span>{" "}
+                  <code className="break-all font-mono text-[11px] text-ink">{clip.clipIdBytes32}</code>
                 </div>
                 <div>
-                  <span className="font-medium text-zinc-500">SHA-256 Master Hash:</span>{" "}
-                  <code className="font-mono break-all text-[11px]">
-                    {clip.fileHash}
-                  </code>
+                  <span className="font-medium">SHA256 Master Hash:</span>{" "}
+                  <code className="break-all font-mono text-[11px] text-ink">{clip.fileHash}</code>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right Column: License Picker & Checkout */}
-          <div className="lg:col-span-5 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-6">
+          <div className="flex flex-col gap-6 rounded-2xl border border-line bg-surface p-6 lg:col-span-5">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h2 className="text-lg font-bold">Select License Tier</h2>
-                <p className="text-xs text-zinc-500">
-                  Non-exclusive usage rights recorded permanently on Arc testnet.
-                </p>
+                <h2 className="font-display text-lg font-bold">Select License Tier</h2>
+                <p className="text-xs text-muted">Nonexclusive usage rights recorded permanently on Arc testnet.</p>
               </div>
               {isConnected && formattedBalance !== undefined && (
-                <div className="text-right shrink-0 bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900">
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-semibold uppercase tracking-wider">
+                <div className="shrink-0 rounded-lg border border-success/40 bg-success/10 px-2.5 py-1 text-right">
+                  <span className="block text-[10px] font-semibold uppercase tracking-wider text-success">
                     Wallet Balance
                   </span>
-                  <span className="text-sm font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
-                    ${formattedBalance} USDC
-                  </span>
+                  <span className="font-mono text-sm font-bold text-success">${formattedBalance} USDC</span>
                 </div>
               )}
             </div>
@@ -262,7 +258,7 @@ function ClipDetailContent() {
                   key: "editorial" as UseType,
                   name: "Editorial Use",
                   price: clip.prices.editorial,
-                  desc: "News, educational commentary, blog articles, non-commercial media.",
+                  desc: "News, educational commentary, blog articles, noncommercial media.",
                 },
                 {
                   key: "social" as UseType,
@@ -281,78 +277,69 @@ function ClipDetailContent() {
                   type="button"
                   key={tier.key}
                   onClick={() => setSelectedTier(tier.key)}
-                  className={`text-left p-4 rounded-xl border transition-all flex flex-col gap-1 cursor-pointer ${
+                  aria-pressed={selectedTier === tier.key}
+                  className={`flex cursor-pointer flex-col gap-1 rounded-xl border p-4 text-left transition-all ${
                     selectedTier === tier.key
-                      ? "border-blue-600 bg-blue-50/50 dark:bg-blue-950/20 ring-2 ring-blue-600/20"
-                      : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+                      ? "border-primary bg-primary/10 ring-2 ring-primary/20"
+                      : "border-line hover:border-muted/60"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-sm">{tier.name}</span>
-                    <span className="font-extrabold text-base text-blue-600 dark:text-blue-400">
-                      ${tier.price} USDC
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold">{tier.name}</span>
+                    <span className="font-display text-base font-bold text-primary">${tier.price} USDC</span>
                   </div>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">{tier.desc}</p>
+                  <p className="text-xs text-muted">{tier.desc}</p>
                 </button>
               ))}
             </div>
 
             {/* Split Breakdown Visualizer */}
-            <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface-2 p-4">
               <div className="flex items-center justify-between text-xs font-semibold">
                 <span>Direct Split Breakdown</span>
-                <span className="text-zinc-500">Atomic in 1 Tx</span>
+                <span className="text-muted">Atomic in 1 Tx</span>
               </div>
-              <div className="flex flex-col gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
+              <div className="flex flex-col gap-1.5 text-xs text-muted">
                 <div className="flex items-center justify-between">
                   <span>Host / Rights Holder ({clip.split.rightsHolderBps / 100}%):</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ${rhAmount.toFixed(2)} USDC
-                  </span>
+                  <span className="font-medium text-ink">${rhAmount.toFixed(2)} USDC</span>
                 </div>
                 {clip.split.contributorBps > 0 && (
                   <div className="flex items-center justify-between">
                     <span>Guest Royalty ({clip.split.contributorBps / 100}%):</span>
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      ${contribAmount.toFixed(2)} USDC
-                    </span>
+                    <span className="font-medium text-ink">${contribAmount.toFixed(2)} USDC</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
                   <span>Snippet Platform ({clip.split.platformBps / 100}%):</span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ${platformAmount.toFixed(2)} USDC
-                  </span>
+                  <span className="font-medium text-ink">${platformAmount.toFixed(2)} USDC</span>
                 </div>
               </div>
             </div>
 
             {/* Checkout Action Zone */}
-            <div className="flex flex-col gap-3 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+            <div className="flex flex-col gap-3 border-t border-line pt-2">
               {!isConnected ? (
-                <div className="flex flex-col items-center gap-2 p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-xl">
-                  <span className="text-xs text-zinc-500">
-                    Connect your wallet to purchase with testnet USDC
-                  </span>
+                <div className="flex flex-col items-center gap-2 rounded-xl bg-surface-2 p-3">
+                  <span className="text-xs text-muted">Connect your wallet to purchase with testnet USDC</span>
                   <ConnectButton />
                 </div>
               ) : !isContractReady ? (
-                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300 text-xs flex flex-col gap-2">
+                <div className="flex flex-col gap-2 rounded-xl border border-primary/40 bg-primary/10 p-4 text-xs text-ink">
                   <p className="font-semibold">Contract Deployment Pending</p>
                   <p>
-                    The UI and video catalog are fully ready. Deploying `SnippetLicenses` to Arc testnet (Step 4) will activate the on-chain buy transactions.
+                    The UI and video catalog are fully ready. Deploying `SnippetLicenses` to Arc testnet (Step 4) will activate the onchain buy transactions.
                   </p>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {/* Step 1: Approve Button */}
-                  {needsApproval && (
+                  {/* Step 1: Approve Button (hidden once this purchase is done) */}
+                  {needsApproval && !isBuySuccess && (
                     <button
                       type="button"
                       onClick={handleApprove}
                       disabled={isApprovePending || isApproveConfirming}
-                      className="w-full py-3 px-4 rounded-xl font-medium bg-amber-500 hover:bg-amber-400 text-white shadow-sm transition-colors text-sm disabled:opacity-50 cursor-pointer"
+                      className="w-full cursor-pointer rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
                     >
                       {isApprovePending
                         ? "Check Wallet to Approve..."
@@ -362,99 +349,61 @@ function ClipDetailContent() {
                     </button>
                   )}
 
-                  {/* Step 2: Buy Button */}
-                  <button
-                    type="button"
-                    onClick={handleBuy}
-                    disabled={needsApproval || isBuyPending || isBuyConfirming}
-                    className="w-full py-3 px-4 rounded-xl font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {isBuyPending
-                      ? "Check Wallet to Buy..."
-                      : isBuyConfirming
-                      ? "Purchasing License on Arc..."
-                      : needsApproval
-                      ? `Step 2: Buy License ($${priceUsd} USDC)`
-                      : `Buy License ($${priceUsd} USDC)`}
-                  </button>
-
-                  {/* Success: On-Chain License Certificate & Download */}
-                  {isBuySuccess && (
-                    <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs flex flex-col gap-3">
-                      <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-sm">
-                        <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">
-                          ✓
-                        </span>
-                        <span>License Issued & Recorded On-Chain!</span>
-                      </div>
-
-                      <div className="bg-white/80 dark:bg-zinc-900/80 p-3 rounded-lg border border-emerald-200/60 dark:border-emerald-900/60 flex flex-col gap-1.5 text-zinc-700 dark:text-zinc-300">
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Licensee:</span>
-                          <span className="font-mono text-[11px] truncate max-w-[180px]">
-                            {address}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Use Tier:</span>
-                          <span className="font-semibold capitalize text-emerald-600 dark:text-emerald-400">
-                            {selectedTier} License
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Amount Paid:</span>
-                          <span className="font-bold">${priceUsd}.00 USDC</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-zinc-500">Verified Hash:</span>
-                          <span className="font-mono text-[10px] truncate max-w-[180px]">
-                            {clip.fileHash}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Download Button */}
-                      <a
-                        href={clip.videoUrl}
-                        download={`${clip.id}-master.mp4`}
-                        className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-center font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-sm"
-                      >
-                        <span>⬇</span>
-                        <span>Download Master Video (.mp4)</span>
-                      </a>
-
-                      {/* Explorer Link */}
-                      <div className="text-center">
-                        <a
-                          href={`https://testnet.arcscan.io/tx/${buyTxHash}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-600 text-[11px] font-medium"
-                        >
-                          View Splits on ArcScan Explorer ↗
-                        </a>
-                      </div>
-                    </div>
+                  {/* Step 2: Buy Button, replaced by "Buy another license" after a purchase */}
+                  {isBuySuccess ? (
+                    <button
+                      type="button"
+                      onClick={handleBuyAnother}
+                      className="w-full cursor-pointer rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm font-semibold text-ink transition-colors hover:border-muted/60"
+                    >
+                      Buy another license
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleBuy}
+                      disabled={needsApproval || isBuyPending || isBuyConfirming}
+                      className="w-full cursor-pointer rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-bg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {isBuyPending
+                        ? "Check Wallet to Buy..."
+                        : isBuyConfirming
+                        ? "Purchasing License on Arc..."
+                        : needsApproval
+                        ? `Step 2: Buy License ($${priceUsd} USDC)`
+                        : `Buy License ($${priceUsd} USDC)`}
+                    </button>
                   )}
 
-                  {/* Transaction In-Flight Feedback */}
-                  {buyTxHash && !isBuySuccess && (
-                    <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl text-xs text-blue-800 dark:text-blue-300 flex flex-col gap-1">
-                      <span className="font-semibold">Transaction Broadcasting:</span>
+                  {/* Transaction Feedback */}
+                  {buyTxHash && (
+                    <div className="flex flex-col gap-1 rounded-xl border border-success/40 bg-success/10 p-3 text-xs text-ink">
+                      <span className="font-semibold">
+                        {isBuySuccess ? "License Successfully Purchased!" : "Transaction Sent:"}
+                      </span>
                       <a
-                        href={`https://testnet.arcscan.io/tx/${buyTxHash}`}
+                        href={`https://testnet.arcscan.app/tx/${buyTxHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="underline font-mono break-all hover:text-blue-600"
+                        className="break-all font-mono underline hover:text-success"
                       >
                         {buyTxHash}
                       </a>
+                      {isBuySuccess && (
+                        <a
+                          href={clip.videoUrl}
+                          download={`${clip.id}-master.mp4`}
+                          className="mt-2 rounded-lg bg-success px-3 py-2 text-center text-sm font-semibold text-bg hover:opacity-90"
+                        >
+                          ⬇ Download Master Video (.mp4)
+                        </a>
+                      )}
                     </div>
                   )}
 
-                  {(approveError || buyError) && (
-                    <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl text-xs text-red-700 dark:text-red-400 break-words">
-                      {approveError?.message || buyError?.message}
+                  {txError && (
+                    <div className="break-words rounded-xl border border-primary/40 bg-primary/10 p-3 text-xs text-ink">
+                      {txError.message}
                     </div>
                   )}
                 </div>
