@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { parseUnits } from "viem";
+import { parseUnits, maxUint256 } from "viem";
 import { getClipById } from "@/lib/clips";
 import { USDC_ADDRESS, USDC_DECIMALS, SNIPPET_LICENSES_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
 import { SnippetLicensesAbi, ERC20Abi } from "@/lib/abi";
@@ -37,6 +37,11 @@ function ClipDetailContent() {
   const clip = getClipById(params.id);
 
   const [selectedTier, setSelectedTier] = useState<UseType>("social");
+  const [purchasedTiers, setPurchasedTiers] = useState<Record<UseType, { price: number; txHash: string } | null>>({
+    editorial: null,
+    social: null,
+    commercial: null,
+  });
 
   const { isConnected, address } = useAccount();
 
@@ -73,6 +78,7 @@ function ClipDetailContent() {
     args: address && isContractReady ? [address, SNIPPET_LICENSES_ADDRESS] : undefined,
     query: {
       enabled: isConnected && !!address && isContractReady,
+      refetchInterval: 3000,
     },
   });
 
@@ -94,23 +100,66 @@ function ClipDetailContent() {
   } = useWriteContract();
 
   // Transaction confirmations
-  const { isLoading: isApproveConfirming, isSuccess: isApproveSuccess } =
-    useWaitForTransactionReceipt({
-      hash: approveTxHash,
-    });
+  const {
+    data: approveReceipt,
+    isLoading: isApproveConfirming,
+    isSuccess: isApproveLoaded,
+  } = useWaitForTransactionReceipt({
+    hash: approveTxHash,
+  });
 
-  const { isLoading: isBuyConfirming, isSuccess: isBuySuccess } =
-    useWaitForTransactionReceipt({
-      hash: buyTxHash,
-    });
+  const {
+    data: buyReceipt,
+    isLoading: isBuyConfirming,
+    isSuccess: isBuyReceiptLoaded,
+  } = useWaitForTransactionReceipt({
+    hash: buyTxHash,
+  });
+
+  const isApproveSuccess = isApproveLoaded && approveReceipt?.status === "success";
+  const isBuySuccess = isBuyReceiptLoaded && buyReceipt?.status === "success";
+  const isBuyReverted = isBuyReceiptLoaded && buyReceipt?.status === "reverted";
 
   // Refetch balances and allowance after confirmation
-  if (isApproveSuccess && needsApproval) {
-    refetchAllowance();
-  }
-  if (isBuySuccess) {
-    refetchBalance();
-  }
+  useEffect(() => {
+    if (isApproveSuccess) {
+      refetchAllowance();
+    }
+  }, [isApproveSuccess, refetchAllowance]);
+
+  useEffect(() => {
+    if (isBuySuccess && buyTxHash) {
+      setPurchasedTiers((prev) => ({
+        ...prev,
+        [selectedTier]: { price: priceUsd, txHash: buyTxHash },
+      }));
+      refetchBalance();
+      refetchAllowance();
+    }
+  }, [isBuySuccess, buyTxHash]);
+
+  const activeTierLicense = purchasedTiers[selectedTier];
+  const isCurrentTierPurchased = !!activeTierLicense;
+
+  // Sync purchase with QuickNode Streams event store
+  useEffect(() => {
+    if (isBuySuccess && buyTxHash && clip && address) {
+      fetch("/api/streams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          licenseId: Date.now(),
+          clipId: clip.clipIdBytes32,
+          buyer: address,
+          fileHash: clip.fileHash,
+          useType: selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1),
+          priceUsdc: priceUsd,
+          timestamp: Math.floor(Date.now() / 1000),
+          txHash: buyTxHash,
+        }),
+      }).catch((err) => console.warn("Failed to notify streams API:", err));
+    }
+  }, [isBuySuccess, buyTxHash, clip, address, selectedTier, priceUsd]);
 
   if (!clip) {
     return (
@@ -137,7 +186,7 @@ function ClipDetailContent() {
       address: USDC_ADDRESS,
       abi: ERC20Abi,
       functionName: "approve",
-      args: [SNIPPET_LICENSES_ADDRESS, priceUnits],
+      args: [SNIPPET_LICENSES_ADDRESS, maxUint256],
       chainId: ARC_TESTNET_CHAIN_ID,
     });
   };
@@ -158,18 +207,34 @@ function ClipDetailContent() {
       {/* Top Navbar */}
       <header className="sticky top-0 z-20 backdrop-blur-md bg-white/80 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm group-hover:bg-blue-500 transition-colors">
                 S
               </div>
               <span className="font-bold text-xl tracking-tight">Snippet</span>
             </Link>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-medium border border-blue-200 dark:border-blue-900">
+            <nav className="hidden sm:flex items-center gap-4 text-sm font-medium">
+              <Link
+                href="/"
+                className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                Marketplace
+              </Link>
+              <Link
+                href="/check"
+                className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                Clearance Checker
+              </Link>
+            </nav>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-block text-xs px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-medium border border-blue-200 dark:border-blue-900">
               Arc Testnet
             </span>
+            <ConnectButton showBalance={false} />
           </div>
-          <ConnectButton showBalance={false} />
         </div>
       </header>
 
@@ -346,46 +411,14 @@ function ClipDetailContent() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {/* Step 1: Approve Button */}
-                  {needsApproval && (
-                    <button
-                      type="button"
-                      onClick={handleApprove}
-                      disabled={isApprovePending || isApproveConfirming}
-                      className="w-full py-3 px-4 rounded-xl font-medium bg-amber-500 hover:bg-amber-400 text-white shadow-sm transition-colors text-sm disabled:opacity-50 cursor-pointer"
-                    >
-                      {isApprovePending
-                        ? "Check Wallet to Approve..."
-                        : isApproveConfirming
-                        ? "Confirming Approval on Arc..."
-                        : `Step 1: Approve $${priceUsd} USDC`}
-                    </button>
-                  )}
-
-                  {/* Step 2: Buy Button */}
-                  <button
-                    type="button"
-                    onClick={handleBuy}
-                    disabled={needsApproval || isBuyPending || isBuyConfirming}
-                    className="w-full py-3 px-4 rounded-xl font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {isBuyPending
-                      ? "Check Wallet to Buy..."
-                      : isBuyConfirming
-                      ? "Purchasing License on Arc..."
-                      : needsApproval
-                      ? `Step 2: Buy License ($${priceUsd} USDC)`
-                      : `Buy License ($${priceUsd} USDC)`}
-                  </button>
-
-                  {/* Success: On-Chain License Certificate & Download */}
-                  {isBuySuccess && (
+                  {isCurrentTierPurchased && activeTierLicense ? (
+                    /* Success: On-Chain License Certificate & Download */
                     <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs flex flex-col gap-3">
                       <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-sm">
                         <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">
                           ✓
                         </span>
-                        <span>License Issued & Recorded On-Chain!</span>
+                        <span className="capitalize">{selectedTier} License Active!</span>
                       </div>
 
                       <div className="bg-white/80 dark:bg-zinc-900/80 p-3 rounded-lg border border-emerald-200/60 dark:border-emerald-900/60 flex flex-col gap-1.5 text-zinc-700 dark:text-zinc-300">
@@ -403,7 +436,7 @@ function ClipDetailContent() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-zinc-500">Amount Paid:</span>
-                          <span className="font-bold">${priceUsd}.00 USDC</span>
+                          <span className="font-bold">${activeTierLicense.price}.00 USDC</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-zinc-500">Verified Hash:</span>
@@ -423,18 +456,54 @@ function ClipDetailContent() {
                         <span>Download Master Video (.mp4)</span>
                       </a>
 
-                      {/* Explorer Link */}
-                      <div className="text-center">
-                        <a
-                          href={`https://testnet.arcscan.io/tx/${buyTxHash}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-600 text-[11px] font-medium"
-                        >
-                          View Splits on ArcScan Explorer ↗
-                        </a>
-                      </div>
+                      <p className="text-center text-[11px] text-zinc-500 dark:text-zinc-400">
+                        Select a different tier above to license for other use cases.
+                      </p>
                     </div>
+                  ) : (
+                    <>
+                      {/* Step 1: Approve Button */}
+                      {needsApproval && (
+                        <button
+                          type="button"
+                          onClick={handleApprove}
+                          disabled={isApprovePending || isApproveConfirming}
+                          className="w-full py-3 px-4 rounded-xl font-medium bg-amber-500 hover:bg-amber-400 text-white shadow-sm transition-colors text-sm disabled:opacity-50 cursor-pointer"
+                        >
+                          {isApprovePending
+                            ? "Check Wallet to Approve..."
+                            : isApproveConfirming
+                            ? "Confirming Approval on Arc..."
+                            : "Step 1: Approve USDC Access ($0 charged)"}
+                        </button>
+                      )}
+
+                      {/* Step 2: Buy Button */}
+                      <button
+                        type="button"
+                        onClick={handleBuy}
+                        disabled={needsApproval || isBuyPending || isBuyConfirming}
+                        className="w-full py-3 px-4 rounded-xl font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        {isBuyPending
+                          ? "Check Wallet to Buy..."
+                          : isBuyConfirming
+                          ? "Purchasing License on Arc..."
+                          : needsApproval
+                          ? `Step 2: Pay $${priceUsd} USDC & Buy License`
+                          : `Pay $${priceUsd} USDC & Buy License`}
+                      </button>
+
+                      {/* Transaction Reverted Warning */}
+                      {isBuyReverted && (
+                        <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl text-xs text-red-700 dark:text-red-300 flex flex-col gap-1">
+                          <span className="font-bold">Transaction Reverted on Arc Testnet</span>
+                          <span>
+                            The transfer failed because the contract was not approved to spend your USDC. Please click "Step 1: Approve USDC Access" above, wait for it to confirm in MetaMask, then click "Buy License".
+                          </span>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   {/* Transaction In-Flight Feedback */}

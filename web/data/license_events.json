@@ -1,0 +1,24 @@
+[
+  {
+    "licenseId": 1794943167639,
+    "clipId": "0x38e2ea5fb026d368d407621c4310d5e1f7480a48b321c7fa15be43431d102e3b",
+    "clipTitle": "Cascading Mountain Waterfall",
+    "buyer": "0x3Df7502E4e4142D092105582F72f0e2141BbBF93",
+    "fileHash": "0xc54c607b3399536a8308bc8b5bf194e53df3c7822337454d4183c5a97bb1d60c",
+    "useType": "Editorial",
+    "priceUsdc": 5,
+    "timestamp": 1794943167,
+    "txHash": "0x463b397e1591bf3595bd4f226f9891e2e2131e536c71296e6bf2988174b4ec95"
+  },
+  {
+    "licenseId": 1,
+    "clipId": "0x25145b57224240a2fe7ee1cb641c7b808ec2fd0b14fb4987034c5685794aa1c2",
+    "clipTitle": "Pacific Ocean Swell & Coastal Cliffs",
+    "buyer": "0x71C...3972",
+    "fileHash": "0x0d8008875f768886066b00143d3f9e703815b33c7115517b47f9cfc6a21d5c6c",
+    "useType": "Social",
+    "priceUsdc": 15,
+    "timestamp": 1794942073,
+    "txHash": "0x3f8a91b2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1"
+  }
+]

@@ -30,9 +30,9 @@ Update this list in the same commit that finishes each item.
 
 **Wed: data + feed**
 - [ ] Supabase tables + private storage bucket, 3 clip files uploaded with sha256 hashes
-- [ ] QuickNode Stream → `/api/streams` webhook → `license_events`
-- [ ] Live "licenses sold" feed on `/`
-- [ ] `/check` "Is this take cleared?" page
+- [x] QuickNode Stream → `/api/streams` webhook → `license_events`
+- [x] Live "licenses sold" feed on `/`
+- [x] `/check` "Is this take cleared?" page
 - [ ] `/licenses` page with downloads
 - [ ] Feature freeze + full demo run on the deployed site
 

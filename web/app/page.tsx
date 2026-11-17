@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { DEMO_CLIPS } from "@/lib/clips";
-import { USDC_ADDRESS, SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 
 export default function Home() {
   return (
@@ -11,18 +10,33 @@ export default function Home() {
       {/* Top Navbar */}
       <header className="sticky top-0 z-20 backdrop-blur-md bg-white/80 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 group">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center gap-2.5 group">
               <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-sm group-hover:bg-blue-500 transition-colors">
                 S
               </div>
               <span className="font-bold text-xl tracking-tight">Snippet</span>
             </Link>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-medium border border-blue-200 dark:border-blue-900">
+            <nav className="hidden sm:flex items-center gap-5 text-sm font-medium">
+              <Link
+                href="/"
+                className="text-blue-600 dark:text-blue-400 font-semibold"
+              >
+                Marketplace
+              </Link>
+              <Link
+                href="/check"
+                className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              >
+                Clearance Checker
+              </Link>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-block text-xs px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-medium border border-blue-200 dark:border-blue-900">
               Arc Testnet
             </span>
-          </div>
-          <div className="flex items-center gap-4">
             <ConnectButton showBalance={false} />
           </div>
         </div>
@@ -33,10 +47,10 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center max-w-2xl mx-auto flex flex-col gap-3">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-            License 30 Second Podcast Moments
+            License Cinematic Moments On-Chain
           </h1>
           <p className="text-lg text-zinc-600 dark:text-zinc-400">
-            Pay in USDC on Arc testnet. Instant splits between the podcast host, interview guest, and platform in a single transaction, with no middleman holding funds.
+            Pay in USDC on Arc testnet. Instant, non-custodial splits directly between creators and contributors in a single transaction with verifiable cryptographic clearance.
           </p>
         </div>
 
@@ -44,9 +58,9 @@ export default function Home() {
         <section className="flex flex-col gap-6">
           <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
             <div>
-              <h2 className="text-xl font-bold">Featured Demo Clips</h2>
+              <h2 className="text-xl font-bold">Featured Video Clips</h2>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Browse highlight clips cleared for editorial, social, or commercial use.
+                Browse master footage cleared for editorial, social, or commercial use.
               </p>
             </div>
             <span className="text-xs font-mono text-zinc-400">
@@ -63,7 +77,7 @@ export default function Home() {
               return (
                 <div
                   key={clip.id}
-                  className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-md transition-shadow flex flex-col overflow-hidden"
+                  className="group rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col"
                 >
                   {/* Video Player */}
                   <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden">
@@ -72,73 +86,63 @@ export default function Home() {
                       controls
                       playsInline
                       preload="metadata"
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-300"
                     />
-                    <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white text-xs px-2 py-0.5 rounded font-mono pointer-events-none">
+                    <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[11px] font-medium px-2 py-0.5 rounded">
                       {clip.duration}
                     </div>
                   </div>
 
-                  {/* Clip Details */}
+                  {/* Card Content */}
                   <div className="p-5 flex-1 flex flex-col justify-between gap-4">
                     <div className="flex flex-col gap-2">
-                      <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400 font-medium">
-                        <span>{clip.show}</span>
-                        <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
-                          {clip.contributorName}
+                      <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+                        <span className="font-medium text-blue-600 dark:text-blue-400">
+                          {clip.show}
                         </span>
+                        <span>{clip.speaker}</span>
                       </div>
 
-                      <h3 className="font-semibold text-lg leading-snug">
+                      <h3 className="font-bold text-lg leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {clip.title}
                       </h3>
 
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2">
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2">
                         {clip.description}
                       </p>
                     </div>
 
                     <div className="flex flex-col gap-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                      {/* Pricing Tier Summary */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-zinc-500">License tiers:</span>
+                        <div className="flex gap-1.5 text-xs font-semibold">
+                          <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                            ${clip.prices.editorial}
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                            ${clip.prices.social}
+                          </span>
+                          <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                            ${clip.prices.commercial}
+                          </span>
+                        </div>
+                      </div>
+
                       {/* Split Breakdown */}
-                      <div className="text-xs text-zinc-500 flex items-center justify-between">
-                        <span>Royalty Split:</span>
-                        <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                          {contribPercent > 0
-                            ? `${rhPercent}% Host · ${contribPercent}% Guest · ${platformPercent}% App`
-                            : `${rhPercent}% Host · ${platformPercent}% App`}
+                      <div className="text-[11px] text-zinc-500 dark:text-zinc-400 flex items-center justify-between">
+                        <span>Splits:</span>
+                        <span className="font-mono">
+                          {rhPercent}% Creator · {contribPercent}% Contributor · {platformPercent}% Platform
                         </span>
                       </div>
 
-                      {/* Pricing Pills */}
-                      <div className="flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/60 p-2 rounded-xl text-xs">
-                        <div className="text-center">
-                          <div className="text-zinc-400">Editorial</div>
-                          <div className="font-bold text-zinc-900 dark:text-zinc-100">
-                            ${clip.prices.editorial}
-                          </div>
-                        </div>
-                        <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-700" />
-                        <div className="text-center">
-                          <div className="text-zinc-400">Social</div>
-                          <div className="font-bold text-zinc-900 dark:text-zinc-100">
-                            ${clip.prices.social}
-                          </div>
-                        </div>
-                        <div className="h-6 w-px bg-zinc-200 dark:bg-zinc-700" />
-                        <div className="text-center">
-                          <div className="text-zinc-400">Commercial</div>
-                          <div className="font-bold text-zinc-900 dark:text-zinc-100">
-                            ${clip.prices.commercial}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Action Button */}
+                      {/* Buy Action Button */}
                       <Link
                         href={`/clips/${clip.id}`}
-                        className="w-full text-center bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-4 rounded-xl shadow-sm transition-colors text-sm"
+                        className="w-full mt-1 py-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-center text-sm transition-colors shadow-sm"
                       >
-                        License This Clip →
+                        Select License & Buy →
                       </Link>
                     </div>
                   </div>
@@ -148,35 +152,23 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Info Footer Callout */}
-        <div className="rounded-2xl bg-zinc-100 dark:bg-zinc-900 p-6 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
-            <p className="font-medium text-zinc-700 dark:text-zinc-300">
-              Arc Testnet Details
-            </p>
-            <p>
-              Chain ID: <code className="font-mono">5042002</code> · USDC Token:{" "}
-              <code className="font-mono">{USDC_ADDRESS}</code>
-            </p>
-            {SNIPPET_LICENSES_ADDRESS !== "0x0000000000000000000000000000000000000000" ? (
-              <p>
-                Contract: <code className="font-mono">{SNIPPET_LICENSES_ADDRESS}</code>
-              </p>
-            ) : (
-              <p className="text-amber-600 dark:text-amber-400">
-                Contract address not yet set in .env (waiting for Tuesday deploy)
-              </p>
-            )}
+        {/* Minimalist Footer */}
+        <footer className="mt-8 pt-6 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-zinc-700 dark:text-zinc-300">Snippet</span>
+            <span>·</span>
+            <span>Built on Arc Testnet</span>
           </div>
+
           <a
             href="https://faucet.circle.com"
             target="_blank"
             rel="noreferrer"
-            className="px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-50 font-medium"
+            className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
           >
             Get Testnet USDC ↗
           </a>
-        </div>
+        </footer>
       </main>
     </div>
   );

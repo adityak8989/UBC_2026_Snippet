@@ -25,10 +25,10 @@ contract DeployAndList is Script {
     function run() external returns (SnippetLicenses licenses) {
         address deployer = msg.sender;
 
-        // Default to deployer wallet if specific role addresses are not provided
-        address treasury = vm.envOr("TREASURY_ADDRESS", deployer);
-        address rightsHolder = vm.envOr("RIGHTS_HOLDER_ADDRESS", deployer);
-        address contributor = vm.envOr("CONTRIBUTOR_ADDRESS", deployer);
+        // Load recipient wallets from contracts/.env
+        address treasury = vm.envAddress("TREASURY_ADDRESS");
+        address rightsHolder = vm.envAddress("RIGHTS_HOLDER_ADDRESS");
+        address contributor = vm.envAddress("CONTRIBUTOR_ADDRESS");
 
         console.log("=== Deploying SnippetLicenses to Arc Testnet ===");
         console.log("Deployer / Owner :", deployer);
