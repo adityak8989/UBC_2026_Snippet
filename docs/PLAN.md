@@ -19,9 +19,13 @@ Update this list in the same commit that finishes each item.
 - [x] README with fresh-laptop setup steps
 
 **Tue: chain + buy flow**
+- [x] 3 demo clips recorded, cut, and added to `web/public/clips`
+- [x] Marketplace UI (`/`) and clip page (`/clips/[id]`) with the approve → buyLicense flow (built; not yet connected to a deployed contract)
+- [ ] File hashes in `web/lib/clips.ts` match the real clip files
+- [ ] Deploy + list-clips scripts, tested on a local chain (anvil)
 - [ ] Contract deployed to Arc testnet and verified on the explorer
 - [ ] 3 clips listed on-chain (Foundry script)
-- [ ] Clip page with buy flow (approve → buyLicense, with pending/confirmed/failed states)
+- [ ] Clip page connected to the deployed contract (test purchase on Arc testnet)
 - [ ] Site deployed on Vercel
 
 **Wed: data + feed**
@@ -33,7 +37,6 @@ Update this list in the same commit that finishes each item.
 - [ ] Feature freeze + full demo run on the deployed site
 
 **Thu–Fri: ship**
-- [ ] 3 demo clips recorded and cut (Riya, Aditya)
 - [ ] Bug fixes from review
 - [ ] Demo video
 - [ ] Final README + Devpost text
@@ -41,10 +44,7 @@ Update this list in the same commit that finishes each item.
 
 ## Team
 
-| Who | Role |
-|---|---|
-| **Esteban** | Main builder: contract, web app, backend, deployment. Commits to `main`. |
-| **Riya, Aditya** | Review and test each piece as it lands; contribute fixes and improvements through pull requests; record and cut the demo podcast clips; make the demo video; write the Devpost text. |
+Team: Esteban, Riya, Aditya. Anyone can pick up any task.
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for the branch and PR workflow.
 
@@ -165,13 +165,13 @@ The contract's own `getLicense` is a backup source if the Stream is down during 
 
 ## 6. Schedule
 
-| When | Esteban (build) | Riya, Aditya (review, test, content) |
-|---|---|---|
-| **Mon night** | Setup, scaffold `/contracts` + `/web`, contract with tests | Clone repo, follow README setup, review contract PR/commit; plan podcast recording |
-| **Tue** | Deploy contract to Arc testnet, list 3 clips, clip page with buy flow, site on Vercel | Test buy flow with their own testnet wallets; record + cut the 3 clips |
-| **Wed** | Supabase + QuickNode Streams webhook, live feed, `/check`, `/licenses` with downloads. **Feature freeze Wed night.** | Test each feature as it lands, file Issues, small fix PRs |
-| **Thu** | Bug fixes, final README | Demo video, Devpost text |
-| **Fri** | Submit by **11:00 CST** | Final check of the submission |
+| When | What |
+|---|---|
+| **Mon night** | Setup, scaffold `/contracts` + `/web`, contract with tests |
+| **Tue** | Record + cut the 3 clips, marketplace UI and clip page with buy flow, deploy contract to Arc testnet, list 3 clips, site on Vercel, test purchases with testnet wallets |
+| **Wed** | Supabase + QuickNode Streams webhook, live feed, `/check`, `/licenses` with downloads; test each feature as it lands. **Feature freeze Wed night.** |
+| **Thu** | Bug fixes, final README, demo video, Devpost text |
+| **Fri** | Final check of the submission; submit by **11:00 CST** |
 
 **Definition of done:**
 1. A fresh wallet with faucet USDC buys a clip on the deployed site.

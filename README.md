@@ -52,7 +52,7 @@ npm install
 cp .env.example .env
 ```
 Open `web/.env` and fill in:
-- `NEXT_PUBLIC_ARC_TESTNET_RPC_URL`: an Arc testnet RPC URL (ask Esteban for the team's QuickNode endpoint, or use the public RPC from the [Arc docs](https://docs.arc.network)).
+- `NEXT_PUBLIC_ARC_TESTNET_RPC_URL`: an Arc testnet RPC URL (ask the team for the QuickNode endpoint, or use the public RPC from the [Arc docs](https://docs.arc.network)).
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` (optional): enables phone wallets. Without it, browser-extension wallets like MetaMask still work.
 - `NEXT_PUBLIC_SNIPPET_LICENSES_ADDRESS`: leave empty until the contract is deployed.
 

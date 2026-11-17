@@ -11,8 +11,7 @@ git pull origin main
 ```
 
 ## Branches and pull requests
-- **Esteban** commits to `main` directly.
-- **Everyone else** works on a branch and opens a pull request into `main`:
+- Always run `git pull` right before you commit. Small changes can go straight to `main`; bigger ones go on a branch with a pull request:
   ```
   git checkout -b riya/fix-buy-button
   # ...make changes, commit...
