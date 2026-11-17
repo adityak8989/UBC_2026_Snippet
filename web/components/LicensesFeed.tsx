@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
@@ -86,11 +86,31 @@ function timeAgo(date: Date, now: number): string {
   return rtf.format(Math.round(h / 24), "day");
 }
 
+// A clock for "time ago" that only reads the time in the browser (after hydration) and ticks every
+// 15 s. Reading Date.now() during render breaks prerendering under Cache Components.
+let clockNow = 0;
+function subscribeClock(onTick: () => void) {
+  clockNow = Date.now();
+  onTick();
+  const t = setInterval(() => {
+    clockNow = Date.now();
+    onTick();
+  }, 15_000);
+  return () => clearInterval(t);
+}
+function useNow() {
+  return useSyncExternalStore(
+    subscribeClock,
+    () => clockNow,
+    () => 0,
+  );
+}
+
 export function LicensesFeed() {
   const isClient = useIsClient();
   const client = usePublicClient({ chainId: ARC_TESTNET_CHAIN_ID });
   const queryClient = useQueryClient();
-  const [now, setNow] = useState(() => Date.now());
+  const now = useNow();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["licensesFeed"],
@@ -101,12 +121,6 @@ export function LicensesFeed() {
 
   // Supabase Realtime: refetch the moment the Streams webhook writes a row.
   useEffect(() => subscribeLicenseEvents(() => queryClient.invalidateQueries({ queryKey: ["licensesFeed"] })), [queryClient]);
-
-  // Keep "time ago" fresh.
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 15_000);
-    return () => clearInterval(t);
-  }, []);
 
   const items = data?.items ?? [];
   const totalToCreators = items.reduce((sum, i) => sum + i.rhAmount + i.contribAmount, BigInt(0));
@@ -158,7 +172,7 @@ export function LicensesFeed() {
         <ul className="flex flex-col gap-2">
           {items.slice(0, SHOWN).map((item) => {
             const clip = DEMO_CLIPS.find((c) => c.clipIdBytes32.toLowerCase() === item.clipId.toLowerCase());
-            const fresh = now - item.time.getTime() < 60_000;
+            const fresh = now > 0 && now - item.time.getTime() < 60_000;
             return (
               <li key={item.licenseId.toString()}>
                 <Link
@@ -181,7 +195,7 @@ export function LicensesFeed() {
                       {item.contribAmount > BigInt(0) ? ` · ${usdc(item.contribAmount)} contributor` : ""} ·{" "}
                       {usdc(item.platformAmount)} Snippet
                     </span>
-                    <span className={fresh ? "font-semibold text-success" : ""}>{timeAgo(item.time, now)}</span>
+                    <span className={fresh ? "font-semibold text-success" : ""}>{now > 0 ? timeAgo(item.time, now) : ""}</span>
                     <span aria-hidden="true" className="text-primary">
                       →
                     </span>
