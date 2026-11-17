@@ -6,7 +6,7 @@ A buyer picks a clip and a use type (Editorial, Social, or Commercial) and pays 
 
 Hackathon project (UBC, Nov 2026). **Testnet only.** All demo clips come from our own recorded podcast.
 
-- Plan (2-minute read): [docs/PLAN.md](docs/PLAN.md) · Detailed spec: [docs/SPEC.md](docs/SPEC.md)
+- Plan and status checklist: [docs/PLAN.md](docs/PLAN.md)
 - How we work (branches, PRs, secrets): [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Repo layout
@@ -15,7 +15,7 @@ Hackathon project (UBC, Nov 2026). **Testnet only.** All demo clips come from ou
 |---|---|
 | `contracts/` | Foundry project: `src/SnippetLicenses.sol`, tests in `test/` |
 | `web/` | Next.js app (TypeScript, App Router) with wagmi, viem, and RainbowKit; Arc testnet config in `web/lib/arc.ts` |
-| `docs/` | `PLAN.md` (2-minute overview) and `SPEC.md` (detailed specs) |
+| `docs/` | Plan |
 
 ## Setup on a fresh laptop
 

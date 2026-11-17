@@ -1,6 +1,6 @@
 # Contributing
 
-How we work on this repo until the Friday Nov 20 deadline. The plan and today's checklist are in [docs/PLAN.md](docs/PLAN.md); detailed specs are in [docs/SPEC.md](docs/SPEC.md).
+How we work on this repo until the Friday Nov 20 deadline. The plan and status live in [docs/PLAN.md](docs/PLAN.md).
 
 ## Before you start
 Always pull the latest `main` first:
