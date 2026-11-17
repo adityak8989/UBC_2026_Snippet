@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { LicenseEvent } from "@/lib/events";
 
 export default function CheckPage() {
+  const pathname = usePathname();
   const [fileHash, setFileHash] = useState("");
   const [isHashing, setIsHashing] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
@@ -15,6 +17,19 @@ export default function CheckPage() {
     message?: string;
     license?: LicenseEvent;
   } | null>(null);
+
+  function handleReset() {
+    setFileHash("");
+    setFileName("");
+    setCheckResult(null);
+    setIsHashing(false);
+    setIsChecking(false);
+  }
+
+  // Always reset to clean dropzone whenever visiting /check
+  useEffect(() => {
+    handleReset();
+  }, [pathname]);
 
   // Client-side SHA-256 hashing using Web Crypto API + auto-check
   async function handleFileUpload(file: File) {
@@ -218,16 +233,16 @@ export default function CheckPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-1">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
                     <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80 italic">
                       Verified against Arc testnet event logs via QuickNode Streams.
                     </p>
                     <button
                       type="button"
                       onClick={handleReset}
-                      className="text-xs text-emerald-700 dark:text-emerald-300 font-semibold hover:underline cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-sm transition-colors cursor-pointer"
                     >
-                      Check Another File →
+                      Check Another File
                     </button>
                   </div>
                 </div>
@@ -242,7 +257,7 @@ export default function CheckPage() {
                   <p className="text-xs text-red-700 dark:text-red-400">
                     This file fingerprint has no recorded license on Arc testnet. Any commercial or social media usage of this footage is currently unlicensed.
                   </p>
-                  <div className="flex items-center justify-between pt-2">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
                     <Link
                       href="/"
                       className="text-xs font-semibold text-red-800 dark:text-red-300 underline"
@@ -252,9 +267,9 @@ export default function CheckPage() {
                     <button
                       type="button"
                       onClick={handleReset}
-                      className="text-xs text-zinc-500 dark:text-zinc-400 hover:underline cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-lg bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-medium text-xs shadow-sm transition-colors cursor-pointer"
                     >
-                      Reset & Try Another File
+                      Check Another File
                     </button>
                   </div>
                 </div>

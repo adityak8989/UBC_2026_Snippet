@@ -97,15 +97,16 @@ export default function Home() {
                   <div className="p-5 flex-1 flex flex-col justify-between gap-4">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
-                        <span className="font-medium text-blue-600 dark:text-blue-400">
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
                           {clip.show}
                         </span>
-                        <span>{clip.speaker}</span>
                       </div>
 
-                      <h3 className="font-bold text-lg leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                        {clip.title}
-                      </h3>
+                      <Link href={`/clips/${clip.id}`}>
+                        <h3 className="font-bold text-lg leading-snug hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+                          {clip.title}
+                        </h3>
+                      </Link>
 
                       <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2">
                         {clip.description}
