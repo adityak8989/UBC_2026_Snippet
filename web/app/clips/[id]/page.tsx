@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -61,14 +61,13 @@ function ClipDetailContent() {
     },
   });
 
-  const needsApproval = isContractReady && (allowance === undefined || allowance < priceUnits);
-
   // Wagmi write hooks
   const {
     data: approveTxHash,
     writeContract: writeApprove,
     isPending: isApprovePending,
     error: approveError,
+    reset: resetApprove,
   } = useWriteContract();
 
   const {
@@ -76,23 +75,40 @@ function ClipDetailContent() {
     writeContract: writeBuy,
     isPending: isBuyPending,
     error: buyError,
+    reset: resetBuy,
   } = useWriteContract();
 
   // Transaction confirmations
-  const { isLoading: isApproveConfirming, isSuccess: isApproveSuccess } =
-    useWaitForTransactionReceipt({
-      hash: approveTxHash,
-    });
+  const {
+    isLoading: isApproveConfirming,
+    isSuccess: isApproveSuccess,
+    error: approveReceiptError,
+  } = useWaitForTransactionReceipt({
+    hash: approveTxHash,
+  });
 
-  const { isLoading: isBuyConfirming, isSuccess: isBuySuccess } =
-    useWaitForTransactionReceipt({
-      hash: buyTxHash,
-    });
+  const {
+    isLoading: isBuyConfirming,
+    isSuccess: isBuySuccess,
+    error: buyReceiptError,
+  } = useWaitForTransactionReceipt({
+    hash: buyTxHash,
+  });
 
-  // Refetch allowance after approval succeeds
-  if (isApproveSuccess && needsApproval) {
-    refetchAllowance();
-  }
+  // Amount this page last asked the wallet to approve. Once that approval confirms we trust it
+  // right away, because the RPC can still return the old allowance for a moment afterwards.
+  const [approvedUnits, setApprovedUnits] = useState<bigint | null>(null);
+  const approvalConfirmed = isApproveSuccess && approvedUnits !== null && approvedUnits >= priceUnits;
+
+  const needsApproval =
+    isContractReady && !approvalConfirmed && (allowance === undefined || allowance < priceUnits);
+
+  // Re-read the allowance after an approval (it went up) and after a purchase (it was spent).
+  useEffect(() => {
+    if (isApproveSuccess || isBuySuccess) refetchAllowance();
+  }, [isApproveSuccess, isBuySuccess, refetchAllowance]);
+
+  const txError = approveError || approveReceiptError || buyError || buyReceiptError;
 
   if (!clip) {
     return (
@@ -115,6 +131,7 @@ function ClipDetailContent() {
 
   const handleApprove = () => {
     if (!isContractReady) return;
+    setApprovedUnits(priceUnits);
     writeApprove({
       address: USDC_ADDRESS,
       abi: ERC20Abi,
@@ -133,6 +150,15 @@ function ClipDetailContent() {
       args: [clip.clipIdBytes32, USE_TYPE_INDEX[selectedTier]],
       chainId: ARC_TESTNET_CHAIN_ID,
     });
+  };
+
+  // Back to Step 1. The purchase spent the allowance, so read the fresh value before
+  // clearing the old transactions; otherwise Buy could briefly show as ready.
+  const handleBuyAnother = async () => {
+    await refetchAllowance();
+    resetApprove();
+    resetBuy();
+    setApprovedUnits(null);
   };
 
   return (
@@ -316,8 +342,8 @@ function ClipDetailContent() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {/* Step 1: Approve Button */}
-                  {needsApproval && (
+                  {/* Step 1: Approve Button (hidden once this purchase is done) */}
+                  {needsApproval && !isBuySuccess && (
                     <button
                       type="button"
                       onClick={handleApprove}
@@ -332,21 +358,31 @@ function ClipDetailContent() {
                     </button>
                   )}
 
-                  {/* Step 2: Buy Button */}
-                  <button
-                    type="button"
-                    onClick={handleBuy}
-                    disabled={needsApproval || isBuyPending || isBuyConfirming}
-                    className="w-full py-3 px-4 rounded-xl font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {isBuyPending
-                      ? "Check Wallet to Buy..."
-                      : isBuyConfirming
-                      ? "Purchasing License on Arc..."
-                      : needsApproval
-                      ? `Step 2: Buy License ($${priceUsd} USDC)`
-                      : `Buy License ($${priceUsd} USDC)`}
-                  </button>
+                  {/* Step 2: Buy Button, replaced by "Buy another license" after a purchase */}
+                  {isBuySuccess ? (
+                    <button
+                      type="button"
+                      onClick={handleBuyAnother}
+                      className="w-full py-3 px-4 rounded-xl font-medium bg-zinc-900 hover:bg-zinc-700 dark:bg-zinc-100 dark:hover:bg-zinc-300 text-white dark:text-zinc-900 shadow-sm transition-colors text-sm cursor-pointer"
+                    >
+                      Buy another license
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleBuy}
+                      disabled={needsApproval || isBuyPending || isBuyConfirming}
+                      className="w-full py-3 px-4 rounded-xl font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {isBuyPending
+                        ? "Check Wallet to Buy..."
+                        : isBuyConfirming
+                        ? "Purchasing License on Arc..."
+                        : needsApproval
+                        ? `Step 2: Buy License ($${priceUsd} USDC)`
+                        : `Buy License ($${priceUsd} USDC)`}
+                    </button>
+                  )}
 
                   {/* Transaction Feedback */}
                   {buyTxHash && (
@@ -365,9 +401,9 @@ function ClipDetailContent() {
                     </div>
                   )}
 
-                  {(approveError || buyError) && (
+                  {txError && (
                     <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl text-xs text-red-700 dark:text-red-400 break-words">
-                      {approveError?.message || buyError?.message}
+                      {txError.message}
                     </div>
                   )}
                 </div>
