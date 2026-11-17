@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check-clips": "node scripts/check-clips.mjs"
+    "check-clips": "node scripts/check-clips.mjs",
+    "verify-onchain": "node scripts/verify-onchain.mjs"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "2.2.11",
