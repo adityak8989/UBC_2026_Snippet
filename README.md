@@ -8,6 +8,8 @@ Hackathon project (UBC, Nov 2026). **Testnet only.** All demo clips come from ou
 
 **Live demo: https://snippet-gamma.vercel.app** (Arc testnet; contract [`0xfc6a…1fe20`](https://testnet.arcscan.app/address/0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20))
 
+**The official contract is `0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20`. The app must keep using it** (its license #1 and listed clips live there; don't point the site at a new deployment).
+
 - Plan and status checklist: [docs/PLAN.md](docs/PLAN.md)
 - How we work (branches, PRs, secrets): [CONTRIBUTING.md](CONTRIBUTING.md)
 
