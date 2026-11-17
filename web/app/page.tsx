@@ -33,10 +33,10 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center max-w-2xl mx-auto flex flex-col gap-3">
           <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-            License 30-Second Podcast Moments
+            License 30 Second Podcast Moments
           </h1>
           <p className="text-lg text-zinc-600 dark:text-zinc-400">
-            Pay in USDC on Arc testnet. Instant, non-custodial splits between the podcast host, interview guest, and platform in a single transaction.
+            Pay in USDC on Arc testnet. Instant splits between the podcast host, interview guest, and platform in a single transaction, with no middleman holding funds.
           </p>
         </div>
 

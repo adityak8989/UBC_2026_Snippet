@@ -197,7 +197,7 @@ function ClipDetailContent() {
             {/* Cryptographic Proof Card */}
             <div className="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
               <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                On-Chain Verification Footprint
+                Onchain Verification Footprint
               </div>
               <div className="text-xs flex flex-col gap-1 text-zinc-600 dark:text-zinc-400">
                 <div>
@@ -207,7 +207,7 @@ function ClipDetailContent() {
                   </code>
                 </div>
                 <div>
-                  <span className="font-medium text-zinc-500">SHA-256 Master Hash:</span>{" "}
+                  <span className="font-medium text-zinc-500">SHA256 Master Hash:</span>{" "}
                   <code className="font-mono break-all text-[11px]">
                     {clip.fileHash}
                   </code>
@@ -221,7 +221,7 @@ function ClipDetailContent() {
             <div>
               <h2 className="text-lg font-bold">Select License Tier</h2>
               <p className="text-xs text-zinc-500">
-                Non-exclusive usage rights recorded permanently on Arc testnet.
+                Nonexclusive usage rights recorded permanently on Arc testnet.
               </p>
             </div>
 
@@ -232,7 +232,7 @@ function ClipDetailContent() {
                   key: "editorial" as UseType,
                   name: "Editorial Use",
                   price: clip.prices.editorial,
-                  desc: "News, educational commentary, blog articles, non-commercial media.",
+                  desc: "News, educational commentary, blog articles, noncommercial media.",
                 },
                 {
                   key: "social" as UseType,
@@ -311,7 +311,7 @@ function ClipDetailContent() {
                 <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300 text-xs flex flex-col gap-2">
                   <p className="font-semibold">Contract Deployment Pending</p>
                   <p>
-                    The UI and video catalog are fully ready. Deploying `SnippetLicenses` to Arc testnet (Step 4) will activate the on-chain buy transactions.
+                    The UI and video catalog are fully ready. Deploying `SnippetLicenses` to Arc testnet (Step 4) will activate the onchain buy transactions.
                   </p>
                 </div>
               ) : (

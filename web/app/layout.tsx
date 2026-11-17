@@ -4,7 +4,7 @@ import Providers from "./providers";
 
 export const metadata: Metadata = {
   title: "Snippet",
-  description: "License 30-second podcast moments, paid in USDC on Arc testnet.",
+  description: "License 30 second podcast moments, paid in USDC on Arc testnet.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
