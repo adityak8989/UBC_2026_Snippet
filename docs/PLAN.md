@@ -2,22 +2,65 @@
 
 **Goal:** a demo where a buyer browses 30-second clips from our own podcast, pays in USDC on Arc testnet, and gets a license recorded on-chain plus the file. Anyone can see a live "licenses sold" feed and check whether a take is cleared.
 
-- **Deadline:** Fri Nov 20, 12:00 CST. Feature-complete target: **Wed Nov 18, night**.
+- **Deadline:** Fri Nov 20, 12:00 CST (we submit by 11:00). **Feature freeze: Wed Nov 18, night.**
 - **Tracks:** Consumer Apps (main) · Best use of Arc · QuickNode Streams bounty.
-- **Scope rule:** build only what the demo needs, without making choices that block a later pilot (see §6).
+- **Scope rule:** build only what the demo needs, without making choices that block a later pilot (see §7).
+
+## Status
+
+Update this list in the same commit that finishes each item.
+
+**Mon: setup**
+- [x] Plan (this file)
+- [ ] CONTRIBUTING.md
+- [ ] Toolchain check (Node 18+, npm, Foundry)
+- [ ] Scaffold `/contracts` (Foundry + OpenZeppelin) and `/web` (Next.js + wagmi + viem + RainbowKit, Arc testnet chain)
+- [ ] `SnippetLicenses` contract + Foundry tests passing
+- [ ] README with fresh-laptop setup steps
+
+**Tue: chain + buy flow**
+- [ ] Contract deployed to Arc testnet and verified on the explorer
+- [ ] 3 clips listed on-chain (Foundry script)
+- [ ] Clip page with buy flow (approve → buyLicense, with pending/confirmed/failed states)
+- [ ] Site deployed on Vercel
+
+**Wed: data + feed**
+- [ ] Supabase tables + private storage bucket, 3 clip files uploaded with sha256 hashes
+- [ ] QuickNode Stream → `/api/streams` webhook → `license_events`
+- [ ] Live "licenses sold" feed on `/`
+- [ ] `/check` "Is this take cleared?" page
+- [ ] `/licenses` page with downloads
+- [ ] Feature freeze + full demo run on the deployed site
+
+**Thu–Fri: ship**
+- [ ] 3 demo clips recorded and cut (Riya, Aditya)
+- [ ] Bug fixes from review
+- [ ] Demo video
+- [ ] Final README + Devpost text
+- [ ] Submitted (by Fri 11:00 CST)
+
+## Team
+
+| Who | Role |
+|---|---|
+| **Esteban** | Main builder: contract, web app, backend, deployment. Commits to `main`. |
+| **Riya, Aditya** | Review and test each piece as it lands; contribute fixes and improvements through pull requests; record and cut the demo podcast clips; make the demo video; write the Devpost text. |
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for the branch and PR workflow.
 
 ## 1. Demo scope
 
 | In | Out (for now) |
 |---|---|
-| A handful of 30 s clips from **our own** recorded podcast | Third-party content, rights-holder onboarding/verification |
-| Fixed price per clip × use type (Editorial / Social / Commercial) | Custom terms, exclusivity, expiry, refunds |
+| **3** 30-second clips from **our own** recorded podcast | Third-party content, rights-holder onboarding/verification |
+| **One price per use type**, the same for every clip (Editorial / Social / Commercial) | Per-clip pricing, custom terms, exclusivity, expiry, refunds |
 | Pay in testnet USDC on Arc, license recorded on-chain | Fiat checkout, mainnet |
-| Revenue split credited to rights holder / contributor / platform in the same tx | Withdraw flows, disputes UI |
-| Platform hosts the clip files (off-chain), download for license holders | Hosting anyone else's media |
+| Revenue split paid to rights holder / contributor / platform in the same tx | Withdraw flows, disputes UI |
+| **No login: the wallet is the account** | Email accounts, profiles |
+| Platform hosts the clip files (off-chain); download only if the connected wallet owns a license | Hosting anyone else's media |
 | Live "licenses sold" feed + "Is this take cleared?" checker via **QuickNode Streams** | Full indexer/reconciler |
 
-We hold the rights to all demo content, so the platform operator lists clips itself and acts as the rights holder. The contributor role is a teammate credited on specific clips.
+We hold the rights to all demo content. The platform operator lists clips itself and acts as the rights holder. The contributor role is a teammate credited on specific clips.
 
 ## 2. Architecture
 
@@ -36,9 +79,9 @@ We hold the rights to all demo content, so the platform operator lists clips its
 
 | Piece | Choice | Notes |
 |---|---|---|
-| App | Next.js (App Router) + TypeScript, deployed on Vercel | One repo, one deploy. Deploy early: Streams needs a public webhook URL. |
-| Wallet | wagmi + viem + RainbowKit, Arc testnet defined as a custom chain | Buyers need only USDC, because on Arc USDC is also the gas token. |
-| Contract | Solidity + Foundry + OpenZeppelin (`Ownable`, `Pausable`, `ReentrancyGuard`, `SafeERC20`) | One contract. |
+| App | Next.js (App Router) + TypeScript in `/web`, deployed on Vercel | Deploy early (Tue): Streams needs a public webhook URL. |
+| Wallet | wagmi + viem + RainbowKit, Arc testnet as a custom chain | Buyers need only USDC, because on Arc USDC is also the gas token. |
+| Contract | Solidity + Foundry + OpenZeppelin in `/contracts` (`Ownable`, `Pausable`, `ReentrancyGuard`, `SafeERC20`) | One contract. |
 | Data/files | Supabase (Postgres + private Storage bucket) | Catalog metadata, Streams event rows, clip files. |
 | Events | **QuickNode Streams** → webhook → `license_events` table | Both the live feed and the checker read this table. |
 | RPC | QuickNode Arc testnet endpoint | Same account as Streams. |
@@ -64,11 +107,13 @@ We hold the rights to all demo content, so the platform operator lists clips its
 Nothing else goes on-chain: no personal data, no media.
 
 **Off-chain (Supabase):**
-- `clips`: id, `clip_id_bytes32`, title, show/episode, start–end in the source episode, description, contributor name, `file_path`, `file_hash`, preview URL, prices (mirrors the chain)
+- `clips`: id, `clip_id_bytes32`, title, show/episode, start–end in the source episode, description, contributor name, `file_path`, `file_hash`, preview URL
 - `license_events`: tx hash, log index (unique together), block, license fields from the event, `received_at`
 - Clip files: a private bucket. The preview is a public, low-bitrate copy. The original master is served via a short-lived signed URL.
 
 **`fileHash` is the link** between the file on our server and the on-chain license.
+
+**Prices:** the contract stores prices per clip, which keeps a later pilot open. For the demo, all 3 clips are listed with the same three prices.
 
 ## 4. Contract: `SnippetLicenses`
 
@@ -107,27 +152,26 @@ The contract **never holds funds**. `buyLicense` pulls USDC from the buyer direc
 
 | Page | What it shows / does | API |
 |---|---|---|
-| `/` Marketplace | Clip cards (preview, title, contributor credit, prices) + **live "licenses sold" ticker** | `GET /api/clips`, `GET /api/feed` (poll every 3 s) |
+| `/` Marketplace | 3 clip cards (preview, title, contributor credit, prices) + **live "licenses sold" ticker** | `GET /api/clips`, `GET /api/feed` (poll every 3 s) |
 | `/clips/[id]` | Preview player, split breakdown, use-type picker, **Buy** (connect → approve → buy, with pending/confirmed/failed states) | `GET /api/clips/[id]` |
-| `/licenses` | The connected wallet's licenses with an Arc explorer link and a **Download** button | `GET /api/licenses?buyer=`, `POST /api/download` (signed message from wallet → checks `license_events` → returns signed URL) |
+| `/licenses` | The connected wallet's licenses with an Arc explorer link and a **Download** button | `GET /api/licenses?buyer=`, `POST /api/download` |
 | `/check` **Is this take cleared?** | Drop a file (hashed in the browser with sha256) or pick a clip, optionally enter a wallet address → "Cleared for Social use by 0xab…12 on Nov 18 (tx)" or "No license found" | `GET /api/check?fileHash=&buyer=` (reads `license_events`) |
+
+**Download gate (no login):** the server checks only one thing: does the connected wallet own a license for this clip in `license_events`? The wallet signs a short message, which is free and costs no gas, so the server knows the request really comes from that wallet. Without the signature, anyone could paste a buyer's address. If the check passes, the server returns a short-lived signed URL.
 
 The checker matches **exact files only**: a re-encoded or edited file won't match. Say this on the page.
 
 The contract's own `getLicense` is a backup source if the Stream is down during the demo.
 
-## 6. Build order (3 people, finish Wed night)
+## 6. Schedule
 
-Roles: **A** = contract and chain · **B** = frontend · **C** = backend, Streams, and storage.
-
-| When | A (contract) | B (frontend) | C (backend/Streams) |
-|---|---|---|---|
-| **Mon night** | Foundry scaffold, contract + tests | Next.js scaffold, Arc chain config in wagmi, page shells | Supabase project + tables + bucket; cut 3–5 clips, compute sha256, upload |
-| **Tue** | Deploy to Arc testnet, verify, list clips via Foundry script; export ABI + address to `packages/shared` or `src/lib/contract.ts` | Marketplace + clip page + buy flow wired to contract | Deploy to Vercel; create Stream + `/api/streams` webhook; `/api/feed`, `/api/clips` |
-| **Wed** | End-to-end buys with 2–3 wallets; edge cases (insufficient USDC, paused) | `/licenses` + download, `/check` page, tx states, polish | `/api/download` (wallet-signed request), `/api/check`; backfill check |
-| **Wed night** | **Feature freeze.** Full demo run on the deployed site. | | |
-| **Thu** | Bug fixes, demo video, README, submission text per track | | |
-| **Fri ≤ 11:00** | Submit (1 h buffer) | | |
+| When | Esteban (build) | Riya, Aditya (review, test, content) |
+|---|---|---|
+| **Mon night** | Setup, scaffold `/contracts` + `/web`, contract with tests | Clone repo, follow README setup, review contract PR/commit; plan podcast recording |
+| **Tue** | Deploy contract to Arc testnet, list 3 clips, clip page with buy flow, site on Vercel | Test buy flow with their own testnet wallets; record + cut the 3 clips |
+| **Wed** | Supabase + QuickNode Streams webhook, live feed, `/check`, `/licenses` with downloads. **Feature freeze Wed night.** | Test each feature as it lands, file Issues, small fix PRs |
+| **Thu** | Bug fixes, final README | Demo video, Devpost text |
+| **Fri** | Submit by **11:00 CST** | Final check of the submission |
 
 **Definition of done:**
 1. A fresh wallet with faucet USDC buys a clip on the deployed site.
