@@ -250,52 +250,48 @@ function ClipDetailContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Video & Metadata */}
           <div className="lg:col-span-7 flex flex-col gap-6">
-            <div className="bg-black rounded-2xl overflow-hidden aspect-video shadow-md border border-zinc-200 dark:border-zinc-800">
+            <div className="relative bg-black rounded-2xl overflow-hidden aspect-video shadow-md border border-zinc-200 dark:border-zinc-800">
               <video
                 src={clip.videoUrl}
                 controls
+                controlsList="nodownload"
+                onContextMenu={(e) => e.preventDefault()}
                 autoPlay
                 playsInline
                 className="w-full h-full object-contain"
               />
+              {/* Stock Preview Watermark Overlay */}
+              {!isCurrentTierPurchased && (
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden select-none">
+                  <div className="text-white/30 dark:text-white/20 font-black tracking-widest text-lg sm:text-2xl rotate-[-20deg] uppercase border-y border-dashed border-white/20 py-2.5 px-8">
+                    SNIPPET PREVIEW · UNLICENSED
+                  </div>
+                  <div className="absolute bottom-12 left-4 text-[10px] text-white/60 font-mono bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded">
+                    PREVIEW ONLY · PURCHASE TO UNLOCK MASTER
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 text-xs text-zinc-500">
-                <span className="font-medium text-blue-600 dark:text-blue-400">
+                <span className="font-semibold text-blue-600 dark:text-blue-400">
                   {clip.show}
                 </span>
                 <span>•</span>
                 <span>{clip.duration}</span>
-                <span>•</span>
-                <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded font-medium">
-                  {clip.contributorName}
-                </span>
+                {clip.contributorName && (
+                  <>
+                    <span>•</span>
+                    <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded font-medium">
+                      {clip.contributorName}
+                    </span>
+                  </>
+                )}
               </div>
 
               <h1 className="text-2xl sm:text-3xl font-extrabold">{clip.title}</h1>
               <p className="text-zinc-600 dark:text-zinc-400">{clip.description}</p>
-            </div>
-
-            {/* Cryptographic Proof Card */}
-            <div className="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
-              <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                On-Chain Verification Footprint
-              </div>
-              <div className="text-xs flex flex-col gap-1 text-zinc-600 dark:text-zinc-400">
-                <div>
-                  <span className="font-medium text-zinc-500">Clip ID (bytes32):</span>{" "}
-                  <code className="font-mono break-all text-[11px]">
-                    {clip.clipIdBytes32}
-                  </code>
-                </div>
-                <div>
-                  <span className="font-medium text-zinc-500">SHA-256 Master Hash:</span>{" "}
-                  <code className="font-mono break-all text-[11px]">
-                    {clip.fileHash}
-                  </code>
-                </div>
-              </div>
             </div>
           </div>
 

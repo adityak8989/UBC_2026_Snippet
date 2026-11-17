@@ -84,10 +84,18 @@ export default function Home() {
                     <video
                       src={clip.videoUrl}
                       controls
+                      controlsList="nodownload"
+                      onContextMenu={(e) => e.preventDefault()}
                       playsInline
                       preload="metadata"
                       className="w-full h-full object-cover group-hover:scale-[1.01] transition-transform duration-300"
                     />
+                    {/* Preview Watermark Overlay */}
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center select-none">
+                      <span className="text-white/25 dark:text-white/20 font-black tracking-widest text-sm rotate-[-20deg] uppercase border-y border-dashed border-white/20 py-1.5 px-6">
+                        SNIPPET PREVIEW
+                      </span>
+                    </div>
                     <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[11px] font-medium px-2 py-0.5 rounded">
                       {clip.duration}
                     </div>
