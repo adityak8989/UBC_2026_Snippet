@@ -355,7 +355,7 @@ function ClipDetailContent() {
                         {isBuySuccess ? "License Successfully Purchased!" : "Transaction Sent:"}
                       </span>
                       <a
-                        href={`https://testnet.arcscan.io/tx/${buyTxHash}`}
+                        href={`https://testnet.arcscan.app/tx/${buyTxHash}`}
                         target="_blank"
                         rel="noreferrer"
                         className="underline font-mono break-all hover:text-blue-600"
