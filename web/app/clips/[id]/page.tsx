@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, Suspense } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -46,6 +46,21 @@ function ClipDetailContent() {
     return parseUnits(priceUsd.toString(), USDC_DECIMALS);
   }, [priceUsd]);
 
+  // Read buyer's USDC balance
+  const { data: usdcBalance, refetch: refetchBalance } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: ERC20Abi,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    query: {
+      enabled: isConnected && !!address,
+    },
+  });
+
+  const formattedBalance = usdcBalance !== undefined
+    ? (Number(usdcBalance) / 10 ** USDC_DECIMALS).toFixed(2)
+    : undefined;
+
   // Read USDC allowance
   const isContractReady =
     SNIPPET_LICENSES_ADDRESS &&
@@ -61,13 +76,14 @@ function ClipDetailContent() {
     },
   });
 
+  const needsApproval = isContractReady && (allowance === undefined || allowance < priceUnits);
+
   // Wagmi write hooks
   const {
     data: approveTxHash,
     writeContract: writeApprove,
     isPending: isApprovePending,
     error: approveError,
-    reset: resetApprove,
   } = useWriteContract();
 
   const {
@@ -75,40 +91,26 @@ function ClipDetailContent() {
     writeContract: writeBuy,
     isPending: isBuyPending,
     error: buyError,
-    reset: resetBuy,
   } = useWriteContract();
 
   // Transaction confirmations
-  const {
-    isLoading: isApproveConfirming,
-    isSuccess: isApproveSuccess,
-    error: approveReceiptError,
-  } = useWaitForTransactionReceipt({
-    hash: approveTxHash,
-  });
+  const { isLoading: isApproveConfirming, isSuccess: isApproveSuccess } =
+    useWaitForTransactionReceipt({
+      hash: approveTxHash,
+    });
 
-  const {
-    isLoading: isBuyConfirming,
-    isSuccess: isBuySuccess,
-    error: buyReceiptError,
-  } = useWaitForTransactionReceipt({
-    hash: buyTxHash,
-  });
+  const { isLoading: isBuyConfirming, isSuccess: isBuySuccess } =
+    useWaitForTransactionReceipt({
+      hash: buyTxHash,
+    });
 
-  // Amount this page last asked the wallet to approve. Once that approval confirms we trust it
-  // right away, because the RPC can still return the old allowance for a moment afterwards.
-  const [approvedUnits, setApprovedUnits] = useState<bigint | null>(null);
-  const approvalConfirmed = isApproveSuccess && approvedUnits !== null && approvedUnits >= priceUnits;
-
-  const needsApproval =
-    isContractReady && !approvalConfirmed && (allowance === undefined || allowance < priceUnits);
-
-  // Re-read the allowance after an approval (it went up) and after a purchase (it was spent).
-  useEffect(() => {
-    if (isApproveSuccess || isBuySuccess) refetchAllowance();
-  }, [isApproveSuccess, isBuySuccess, refetchAllowance]);
-
-  const txError = approveError || approveReceiptError || buyError || buyReceiptError;
+  // Refetch balances and allowance after confirmation
+  if (isApproveSuccess && needsApproval) {
+    refetchAllowance();
+  }
+  if (isBuySuccess) {
+    refetchBalance();
+  }
 
   if (!clip) {
     return (
@@ -131,7 +133,6 @@ function ClipDetailContent() {
 
   const handleApprove = () => {
     if (!isContractReady) return;
-    setApprovedUnits(priceUnits);
     writeApprove({
       address: USDC_ADDRESS,
       abi: ERC20Abi,
@@ -150,15 +151,6 @@ function ClipDetailContent() {
       args: [clip.clipIdBytes32, USE_TYPE_INDEX[selectedTier]],
       chainId: ARC_TESTNET_CHAIN_ID,
     });
-  };
-
-  // Back to Step 1. The purchase spent the allowance, so read the fresh value before
-  // clearing the old transactions; otherwise Buy could briefly show as ready.
-  const handleBuyAnother = async () => {
-    await refetchAllowance();
-    resetApprove();
-    resetBuy();
-    setApprovedUnits(null);
   };
 
   return (
@@ -223,7 +215,7 @@ function ClipDetailContent() {
             {/* Cryptographic Proof Card */}
             <div className="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
               <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                Onchain Verification Footprint
+                On-Chain Verification Footprint
               </div>
               <div className="text-xs flex flex-col gap-1 text-zinc-600 dark:text-zinc-400">
                 <div>
@@ -233,7 +225,7 @@ function ClipDetailContent() {
                   </code>
                 </div>
                 <div>
-                  <span className="font-medium text-zinc-500">SHA256 Master Hash:</span>{" "}
+                  <span className="font-medium text-zinc-500">SHA-256 Master Hash:</span>{" "}
                   <code className="font-mono break-all text-[11px]">
                     {clip.fileHash}
                   </code>
@@ -244,11 +236,23 @@ function ClipDetailContent() {
 
           {/* Right Column: License Picker & Checkout */}
           <div className="lg:col-span-5 bg-white dark:bg-zinc-900 p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col gap-6">
-            <div>
-              <h2 className="text-lg font-bold">Select License Tier</h2>
-              <p className="text-xs text-zinc-500">
-                Nonexclusive usage rights recorded permanently on Arc testnet.
-              </p>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <h2 className="text-lg font-bold">Select License Tier</h2>
+                <p className="text-xs text-zinc-500">
+                  Non-exclusive usage rights recorded permanently on Arc testnet.
+                </p>
+              </div>
+              {isConnected && formattedBalance !== undefined && (
+                <div className="text-right shrink-0 bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-900">
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-semibold uppercase tracking-wider">
+                    Wallet Balance
+                  </span>
+                  <span className="text-sm font-extrabold font-mono text-emerald-600 dark:text-emerald-400">
+                    ${formattedBalance} USDC
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Tier Radio Options */}
@@ -258,7 +262,7 @@ function ClipDetailContent() {
                   key: "editorial" as UseType,
                   name: "Editorial Use",
                   price: clip.prices.editorial,
-                  desc: "News, educational commentary, blog articles, noncommercial media.",
+                  desc: "News, educational commentary, blog articles, non-commercial media.",
                 },
                 {
                   key: "social" as UseType,
@@ -337,13 +341,13 @@ function ClipDetailContent() {
                 <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300 text-xs flex flex-col gap-2">
                   <p className="font-semibold">Contract Deployment Pending</p>
                   <p>
-                    The UI and video catalog are fully ready. Deploying `SnippetLicenses` to Arc testnet (Step 4) will activate the onchain buy transactions.
+                    The UI and video catalog are fully ready. Deploying `SnippetLicenses` to Arc testnet (Step 4) will activate the on-chain buy transactions.
                   </p>
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
-                  {/* Step 1: Approve Button (hidden once this purchase is done) */}
-                  {needsApproval && !isBuySuccess && (
+                  {/* Step 1: Approve Button */}
+                  {needsApproval && (
                     <button
                       type="button"
                       onClick={handleApprove}
@@ -358,40 +362,87 @@ function ClipDetailContent() {
                     </button>
                   )}
 
-                  {/* Step 2: Buy Button, replaced by "Buy another license" after a purchase */}
-                  {isBuySuccess ? (
-                    <button
-                      type="button"
-                      onClick={handleBuyAnother}
-                      className="w-full py-3 px-4 rounded-xl font-medium bg-zinc-900 hover:bg-zinc-700 dark:bg-zinc-100 dark:hover:bg-zinc-300 text-white dark:text-zinc-900 shadow-sm transition-colors text-sm cursor-pointer"
-                    >
-                      Buy another license
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={handleBuy}
-                      disabled={needsApproval || isBuyPending || isBuyConfirming}
-                      className="w-full py-3 px-4 rounded-xl font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      {isBuyPending
-                        ? "Check Wallet to Buy..."
-                        : isBuyConfirming
-                        ? "Purchasing License on Arc..."
-                        : needsApproval
-                        ? `Step 2: Buy License ($${priceUsd} USDC)`
-                        : `Buy License ($${priceUsd} USDC)`}
-                    </button>
+                  {/* Step 2: Buy Button */}
+                  <button
+                    type="button"
+                    onClick={handleBuy}
+                    disabled={needsApproval || isBuyPending || isBuyConfirming}
+                    className="w-full py-3 px-4 rounded-xl font-medium bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    {isBuyPending
+                      ? "Check Wallet to Buy..."
+                      : isBuyConfirming
+                      ? "Purchasing License on Arc..."
+                      : needsApproval
+                      ? `Step 2: Buy License ($${priceUsd} USDC)`
+                      : `Buy License ($${priceUsd} USDC)`}
+                  </button>
+
+                  {/* Success: On-Chain License Certificate & Download */}
+                  {isBuySuccess && (
+                    <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl text-xs flex flex-col gap-3">
+                      <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-sm">
+                        <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">
+                          ✓
+                        </span>
+                        <span>License Issued & Recorded On-Chain!</span>
+                      </div>
+
+                      <div className="bg-white/80 dark:bg-zinc-900/80 p-3 rounded-lg border border-emerald-200/60 dark:border-emerald-900/60 flex flex-col gap-1.5 text-zinc-700 dark:text-zinc-300">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Licensee:</span>
+                          <span className="font-mono text-[11px] truncate max-w-[180px]">
+                            {address}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Use Tier:</span>
+                          <span className="font-semibold capitalize text-emerald-600 dark:text-emerald-400">
+                            {selectedTier} License
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Amount Paid:</span>
+                          <span className="font-bold">${priceUsd}.00 USDC</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500">Verified Hash:</span>
+                          <span className="font-mono text-[10px] truncate max-w-[180px]">
+                            {clip.fileHash}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Download Button */}
+                      <a
+                        href={clip.videoUrl}
+                        download={`${clip.id}-master.mp4`}
+                        className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-center font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-sm"
+                      >
+                        <span>⬇</span>
+                        <span>Download Master Video (.mp4)</span>
+                      </a>
+
+                      {/* Explorer Link */}
+                      <div className="text-center">
+                        <a
+                          href={`https://testnet.arcscan.io/tx/${buyTxHash}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-emerald-700 dark:text-emerald-400 underline hover:text-emerald-600 text-[11px] font-medium"
+                        >
+                          View Splits on ArcScan Explorer ↗
+                        </a>
+                      </div>
+                    </div>
                   )}
 
-                  {/* Transaction Feedback */}
-                  {buyTxHash && (
+                  {/* Transaction In-Flight Feedback */}
+                  {buyTxHash && !isBuySuccess && (
                     <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-xl text-xs text-blue-800 dark:text-blue-300 flex flex-col gap-1">
-                      <span className="font-semibold">
-                        {isBuySuccess ? "License Successfully Purchased!" : "Transaction Sent:"}
-                      </span>
+                      <span className="font-semibold">Transaction Broadcasting:</span>
                       <a
-                        href={`https://testnet.arcscan.app/tx/${buyTxHash}`}
+                        href={`https://testnet.arcscan.io/tx/${buyTxHash}`}
                         target="_blank"
                         rel="noreferrer"
                         className="underline font-mono break-all hover:text-blue-600"
@@ -401,9 +452,9 @@ function ClipDetailContent() {
                     </div>
                   )}
 
-                  {txError && (
+                  {(approveError || buyError) && (
                     <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 rounded-xl text-xs text-red-700 dark:text-red-400 break-words">
-                      {txError.message}
+                      {approveError?.message || buyError?.message}
                     </div>
                   )}
                 </div>
