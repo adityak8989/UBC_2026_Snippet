@@ -1,8 +1,8 @@
 // Checks web/lib/clips.json before listing clips on-chain:
 // each fileHash is the sha256 of its file in public/, each clipIdBytes32 is keccak256(id),
-// and each split sums to 10000 bps. Run from web/: npm run check-clips
+// each split sums to 10000 bps, and the playback preview and poster exist. Run from web/: npm run check-clips
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { keccak256, toBytes } from "viem";
 
 const { clips } = JSON.parse(readFileSync(new URL("../lib/clips.json", import.meta.url), "utf8"));
@@ -16,6 +16,9 @@ for (const clip of clips) {
     fileHash: sha === clip.fileHash,
     clipIdBytes32: keccak256(toBytes(clip.id)) === clip.clipIdBytes32,
     split: rightsHolderBps + contributorBps + platformBps === 10000,
+    previewAndPoster: [clip.previewUrl, clip.posterUrl].every(
+      (url) => url && existsSync(new URL(`../public${url}`, import.meta.url)),
+    ),
   };
   for (const [name, passed] of Object.entries(checks)) {
     if (!passed) ok = false;

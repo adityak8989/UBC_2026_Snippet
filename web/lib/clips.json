@@ -10,6 +10,8 @@
       "contributorName": "Aditya (Cohost)",
       "duration": "0:28",
       "videoUrl": "/clips/clip1.mp4",
+      "previewUrl": "/clips/preview/clip1.mp4",
+      "posterUrl": "/clips/posters/clip1.jpg",
       "fileHash": "0xed770ac420e933f25434c5ad07ae73d8f446a48af6b3eeb4fad069f4a0bcfa47",
       "prices": {
         "editorial": 5,
@@ -32,6 +34,8 @@
       "contributorName": "Riya (Guest Speaker)",
       "duration": "0:30",
       "videoUrl": "/clips/clip2.mp4",
+      "previewUrl": "/clips/preview/clip2.mp4",
+      "posterUrl": "/clips/posters/clip2.jpg",
       "fileHash": "0x18cf7f14d9f9abf2f014ceaafc449cb5fce309f21eff227b3b0d439090de0245",
       "prices": {
         "editorial": 5,
@@ -54,6 +58,8 @@
       "contributorName": "Solo Take (No Guest)",
       "duration": "0:15",
       "videoUrl": "/clips/clip3.mp4",
+      "previewUrl": "/clips/preview/clip3.mp4",
+      "posterUrl": "/clips/posters/clip3.jpg",
       "fileHash": "0x09f4a1563d66df5da733b9c72d15e7f10f2aa7430c6020d6a1116979b67057f5",
       "prices": {
         "editorial": 5,

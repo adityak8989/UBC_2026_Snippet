@@ -49,7 +49,8 @@ export default function Home() {
                   {/* Video Player */}
                   <div className="relative flex aspect-video items-center justify-center overflow-hidden bg-black">
                     <video
-                      src={clip.videoUrl}
+                      src={clip.previewUrl}
+                      poster={clip.posterUrl}
                       controls
                       playsInline
                       preload="metadata"

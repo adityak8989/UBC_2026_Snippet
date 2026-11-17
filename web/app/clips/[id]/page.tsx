@@ -222,11 +222,13 @@ function ClipDetailContent() {
           {/* Left Column: Video & Metadata */}
           <div className="flex flex-col gap-6 lg:col-span-7">
             <div className="aspect-video overflow-hidden rounded-2xl border border-line bg-black">
+              {/* Plays the light preview; the hashed master (clip.videoUrl) is only for download */}
               <video
-                src={clip.videoUrl}
+                src={clip.previewUrl}
+                poster={clip.posterUrl}
                 controls
-                autoPlay
                 playsInline
+                preload="metadata"
                 className="h-full w-full object-contain"
               />
             </div>

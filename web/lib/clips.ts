@@ -8,6 +8,10 @@ import clipsData from "./clips.json";
 //   sha256sum web/public/clips/clip1.mp4
 // clipIdBytes32 = keccak256 of the id string, e.g. `cast keccak clip-1`.
 // Prices are whole USDC (the list script and the clip page both convert with 6 decimals).
+//
+// videoUrl is the original master file: the one fileHash describes, the /check page matches, and
+// licensees download. previewUrl (720p, ~2 MB, faststart) and posterUrl are for playback only;
+// they are different bytes, so never hash them or list them on-chain.
 export interface Clip {
   id: string;
   clipIdBytes32: `0x${string}`;
@@ -18,6 +22,8 @@ export interface Clip {
   contributorName: string;
   duration: string;
   videoUrl: string;
+  previewUrl: string;
+  posterUrl: string;
   fileHash: `0x${string}`;
   prices: {
     editorial: number; // in USDC
