@@ -26,7 +26,7 @@ Update this list in the same commit that finishes each item.
 - [x] Contract deployed to Arc testnet and verified on the explorer: [`0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20`](https://testnet.arcscan.app/address/0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20)
 - [x] 3 clips listed on-chain, matching `web/lib/clips.json` (checked by `npm run verify-onchain`)
 - [x] Clip page connected to the deployed contract: first test purchase on Arc testnet (clip-2, Social, 15 USDC split 10.5 / 3 / 1.5): [tx](https://testnet.arcscan.app/tx/0x58346ca1d5fb4507a3206876f9f5b727a4d2a0089aaa72b16239afbfb18d48c3)
-- [ ] Site deployed on Vercel
+- [x] Site deployed on Vercel: https://snippet-gamma.vercel.app
 
 **Wed: data + feed**
 - [ ] Supabase tables + private storage bucket, 3 clip files uploaded with sha256 hashes

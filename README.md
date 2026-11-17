@@ -6,6 +6,8 @@ A buyer picks a clip and a use type (Editorial, Social, or Commercial) and pays 
 
 Hackathon project (UBC, Nov 2026). **Testnet only.** All demo clips come from our own recorded podcast.
 
+**Live demo: https://snippet-gamma.vercel.app** (Arc testnet; contract [`0xfc6a…1fe20`](https://testnet.arcscan.app/address/0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20))
+
 - Plan and status checklist: [docs/PLAN.md](docs/PLAN.md)
 - How we work (branches, PRs, secrets): [CONTRIBUTING.md](CONTRIBUTING.md)
 
@@ -66,6 +68,13 @@ Open http://localhost:3000.
 - Use a **fresh testnet-only wallet**, never one that holds real funds.
 - Add Arc testnet (chain ID `5042002`). The app prompts you to switch networks.
 - Get testnet USDC from https://faucet.circle.com. On Arc, USDC also pays for gas.
+
+## Deploying the web app
+The site is the Vercel project `snippet` (team Snippet) with `web/` as its root. It isn't connected to GitHub, so pushes don't redeploy it. To deploy, run from `web/` (the first time, `npx vercel login`):
+```
+npx vercel@65.9.0 --scope snippet4 deploy --prod
+```
+Environment variables are set in the Vercel project, not uploaded: `web/.vercelignore` keeps `.env*` files out of every deploy.
 
 ## Notes
 - **USDC decimals on Arc:** the native gas balance uses 18 decimals; the USDC ERC-20 interface (`0x3600000000000000000000000000000000000000`) uses 6. The contract and app use only the 6-decimal ERC-20 interface.

@@ -1,0 +1,5 @@
+# Never upload local env files or build output to Vercel; env vars are set in the Vercel project.
+.env*
+!.env.example
+.next
+node_modules
