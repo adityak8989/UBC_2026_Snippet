@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { parseUnits } from "viem";
+import { parseEventLogs, parseUnits } from "viem";
+import { PurchaseReceipt } from "@/components/PurchaseReceipt";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getClipById } from "@/lib/clips";
 import { USDC_ADDRESS, USDC_DECIMALS, SNIPPET_LICENSES_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
@@ -17,6 +18,12 @@ const USE_TYPE_INDEX: Record<UseType, number> = {
   editorial: 0,
   social: 1,
   commercial: 2,
+};
+
+const USE_TYPE_LABEL: Record<UseType, string> = {
+  editorial: "Editorial",
+  social: "Social",
+  commercial: "Commercial",
 };
 
 export default function ClipDetailPage() {
@@ -102,13 +109,29 @@ function ClipDetailContent() {
     hash: approveTxHash,
   });
 
+  // Poll every 250 ms (wagmi's default is 4 s) so "Settled on Arc in X.XXs" is accurate to ~0.25 s.
   const {
+    data: buyReceipt,
+    dataUpdatedAt: buyReceiptAt,
     isLoading: isBuyConfirming,
     isSuccess: isBuySuccess,
     error: buyReceiptError,
   } = useWaitForTransactionReceipt({
     hash: buyTxHash,
+    pollingInterval: 250,
   });
+
+  // When the wallet handed back the buy transaction hash, i.e. the user confirmed it.
+  const [buySentAt, setBuySentAt] = useState<number | null>(null);
+  const settledSeconds =
+    isBuySuccess && buySentAt !== null ? Math.max(0, buyReceiptAt - buySentAt) / 1000 : undefined;
+
+  // The license this purchase created, as recorded on-chain.
+  const issued = useMemo(() => {
+    if (!buyReceipt) return undefined;
+    return parseEventLogs({ abi: SnippetLicensesAbi, logs: buyReceipt.logs, eventName: "LicenseIssued" })[0]
+      ?.args;
+  }, [buyReceipt]);
 
   // Amount this page last asked the wallet to approve. Once that approval confirms we trust it
   // right away, because the RPC can still return the old allowance for a moment afterwards.
@@ -160,13 +183,17 @@ function ClipDetailContent() {
 
   const handleBuy = () => {
     if (!isContractReady) return;
-    writeBuy({
-      address: SNIPPET_LICENSES_ADDRESS,
-      abi: SnippetLicensesAbi,
-      functionName: "buyLicense",
-      args: [clip.clipIdBytes32, USE_TYPE_INDEX[selectedTier]],
-      chainId: ARC_TESTNET_CHAIN_ID,
-    });
+    setBuySentAt(null);
+    writeBuy(
+      {
+        address: SNIPPET_LICENSES_ADDRESS,
+        abi: SnippetLicensesAbi,
+        functionName: "buyLicense",
+        args: [clip.clipIdBytes32, USE_TYPE_INDEX[selectedTier]],
+        chainId: ARC_TESTNET_CHAIN_ID,
+      },
+      { onSuccess: () => setBuySentAt(Date.now()) },
+    );
   };
 
   // Back to Step 1. The purchase spent the allowance, so read the fresh value before
@@ -176,6 +203,7 @@ function ClipDetailContent() {
     resetApprove();
     resetBuy();
     setApprovedUnits(null);
+    setBuySentAt(null);
   };
 
   return (
@@ -349,15 +377,33 @@ function ClipDetailContent() {
                     </button>
                   )}
 
-                  {/* Step 2: Buy Button, replaced by "Buy another license" after a purchase */}
-                  {isBuySuccess ? (
-                    <button
-                      type="button"
-                      onClick={handleBuyAnother}
-                      className="w-full cursor-pointer rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm font-semibold text-ink transition-colors hover:border-muted/60"
-                    >
-                      Buy another license
-                    </button>
+                  {/* After a purchase: the receipt, then "Buy another license" instead of Buy */}
+                  {isBuySuccess && buyTxHash ? (
+                    <>
+                      {issued && (
+                        <PurchaseReceipt
+                          licenseId={issued.licenseId}
+                          priceUnits={issued.price}
+                          useTypeLabel={Object.values(USE_TYPE_LABEL)[issued.useType] ?? ""}
+                          payouts={[
+                            { label: "Host", units: issued.rhAmount },
+                            ...(issued.contribAmount > BigInt(0) ? [{ label: "Guest", units: issued.contribAmount }] : []),
+                            { label: "Snippet", units: issued.platformAmount },
+                          ]}
+                          txHash={buyTxHash}
+                          settledSeconds={settledSeconds}
+                          downloadUrl={clip.videoUrl}
+                          downloadName={`${clip.id}-master.mp4`}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleBuyAnother}
+                        className="w-full cursor-pointer rounded-xl border border-line bg-surface-2 px-4 py-3 text-sm font-semibold text-ink transition-colors hover:border-muted/60"
+                      >
+                        Buy another license
+                      </button>
+                    </>
                   ) : (
                     <button
                       type="button"
@@ -375,29 +421,18 @@ function ClipDetailContent() {
                     </button>
                   )}
 
-                  {/* Transaction Feedback */}
-                  {buyTxHash && (
-                    <div className="flex flex-col gap-1 rounded-xl border border-success/40 bg-success/10 p-3 text-xs text-ink">
-                      <span className="font-semibold">
-                        {isBuySuccess ? "License Successfully Purchased!" : "Transaction Sent:"}
-                      </span>
+                  {/* Transaction sent, waiting for the receipt */}
+                  {buyTxHash && !isBuySuccess && (
+                    <div className="flex flex-col gap-1 rounded-xl border border-line bg-surface-2 p-3 text-xs text-ink">
+                      <span className="font-semibold">Transaction sent, waiting for Arc to confirm:</span>
                       <a
                         href={`https://testnet.arcscan.app/tx/${buyTxHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="break-all font-mono underline hover:text-success"
+                        className="break-all font-mono text-muted underline hover:text-ink"
                       >
                         {buyTxHash}
                       </a>
-                      {isBuySuccess && (
-                        <a
-                          href={clip.videoUrl}
-                          download={`${clip.id}-master.mp4`}
-                          className="mt-2 rounded-lg bg-success px-3 py-2 text-center text-sm font-semibold text-bg hover:opacity-90"
-                        >
-                          ⬇ Download Master Video (.mp4)
-                        </a>
-                      )}
                     </div>
                   )}
 

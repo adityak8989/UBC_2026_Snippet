@@ -34,6 +34,36 @@ body {
   color: var(--color-bg);
 }
 
+/* Purchase receipt: each payout line fills, a dot travels along it, then the amount appears. */
+@keyframes receipt-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+@keyframes receipt-dot {
+  from { left: 0; opacity: 1; }
+  to { left: calc(100% - 0.625rem); opacity: 0; }
+}
+@keyframes receipt-fade {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes receipt-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  70% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.receipt-fill { width: 0; animation: receipt-fill 700ms ease-out forwards; }
+.receipt-dot { opacity: 0; animation: receipt-dot 700ms ease-out forwards; }
+.receipt-amount { opacity: 0; animation: receipt-fade 300ms ease-out forwards; }
+.receipt-pop { animation: receipt-pop 400ms ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .receipt-fill { animation: none; width: 100%; }
+  .receipt-dot { animation: none; opacity: 0; }
+  .receipt-amount { animation: none; opacity: 1; }
+  .receipt-pop { animation: none; }
+}
+
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
