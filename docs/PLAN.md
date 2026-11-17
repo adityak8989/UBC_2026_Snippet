@@ -20,12 +20,12 @@ Update this list in the same commit that finishes each item.
 
 **Tue: chain + buy flow**
 - [x] 3 demo clips recorded, cut, and added to `web/public/clips`
-- [x] Marketplace UI (`/`) and clip page (`/clips/[id]`) with the approve → buyLicense flow (built; not yet connected to a deployed contract)
+- [x] Marketplace UI (`/`) and clip page (`/clips/[id]`) with the approve → buyLicense flow
 - [x] File hashes and clip IDs match the real clip files (`web/lib/clips.json`, checked by `npm run check-clips`)
 - [x] Deploy + list-clips scripts, tested on a local chain (anvil); compiled for Osaka (Arc testnet)
-- [ ] Contract deployed to Arc testnet and verified on the explorer
-- [ ] 3 clips listed on-chain (Foundry script)
-- [ ] Clip page connected to the deployed contract (test purchase on Arc testnet)
+- [x] Contract deployed to Arc testnet and verified on the explorer: [`0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20`](https://testnet.arcscan.app/address/0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20)
+- [x] 3 clips listed on-chain, matching `web/lib/clips.json` (checked by `npm run verify-onchain`)
+- [ ] Clip page connected to the deployed contract: first test purchase on Arc testnet
 - [ ] Site deployed on Vercel
 
 **Wed: data + feed**
