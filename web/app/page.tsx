@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LicensesFeed } from "@/components/LicensesFeed";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { DEMO_CLIPS } from "@/lib/clips";
@@ -128,6 +129,9 @@ export default function Home() {
             })}
           </div>
         </section>
+
+        {/* Live feed of licenses sold, from QuickNode Streams */}
+        <LicensesFeed />
 
         {/* Info Footer Callout */}
         <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-line bg-surface p-6 text-xs text-muted sm:flex-row sm:items-center">
