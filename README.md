@@ -78,6 +78,47 @@ npx vercel@65.9.0 --scope snippet4 deploy --prod
 ```
 Environment variables are set in the Vercel project, not uploaded: `web/.vercelignore` keeps `.env*` files out of every deploy.
 
+## How we use QuickNode Streams
+
+QuickNode Streams is Snippet's data source for sales. Every `LicenseIssued` event from the official contract flows through a Stream into our database. The live "Licenses sold" feed, the stats, `/check`'s "licenses sold" list, and each certificate's transaction link all read from that.
+
+```
+Arc testnet ──► QuickNode Stream (Logs dataset + filter) ──► POST /api/streams (signed) ──► Supabase license_events
+                                                                                              │
+                         home feed + stats (Realtime) ◄──────── /check ◄──────── /license/[id] ◄┘
+```
+
+**Stream configuration**
+| Setting | Value |
+|---|---|
+| Network | Arc Testnet |
+| Dataset | Logs |
+| Start block | `72718270` (before license #1, so every license backfills) |
+| End block | none (keep streaming) |
+| Filter | [`quicknode/filter.js`](quicknode/filter.js): keeps only logs from `0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20` whose topic 0 is `LicenseIssued` (`0x019c42efa4a2ed077d7577fc401e2f0dfcf241fd5f419761e314dd00c73cfd8d`); returns `null` otherwise so empty batches aren't delivered |
+| Destination | Webhook, `https://snippet-gamma.vercel.app/api/streams` |
+
+**Webhook** ([`web/app/api/streams/route.ts`](web/app/api/streams/route.ts))
+1. **Verifies the signature.** QuickNode sends `X-QN-Nonce`, `X-QN-Timestamp`, `X-QN-Signature`. We recompute `HMAC-SHA256(security token, nonce + timestamp + body)` and compare in constant time. A bad or missing signature gets 401, and without a configured token nothing is accepted.
+2. **Decodes and stores.** It collects logs from the payload, keeps only `LicenseIssued` from the official contract, decodes them with viem, and upserts into `license_events` on `license_id`. Retries and backfills can't create duplicates.
+3. **Lets QuickNode retry.** It answers 5xx when the database is unreachable, so QuickNode retries instead of dropping the sale.
+
+**Storage and reads.** [`supabase/license_events.sql`](supabase/license_events.sql) creates the table:
+- **Row Level Security:** anyone can read, and only the server's secret key can write.
+- **Realtime:** the home feed updates within seconds of a sale.
+- **Fallback:** pages fall back to reading the contract directly if Supabase is down.
+- **Verification:** a certificate only shows "Verified on Arc" after the chain agrees with the indexed row.
+
+**Environment variables** (in `web/.env.local` and the Vercel project; names in [`web/.env.example`](web/.env.example)):
+| Variable | Where it's used | Secret? |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | browser and webhook | no |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | browser (read only) | no |
+| `SUPABASE_SECRET_KEY` | webhook only | **yes, never `NEXT_PUBLIC_`** |
+| `QUICKNODE_STREAMS_SECURITY_TOKEN` | webhook only | **yes** |
+
+**Why it's core.** Reading every sale from the contract means one RPC call per license, and the public RPC refuses log searches over a few thousand blocks. Streams turns the chain into a push feed: each sale arrives once, is signed, and backfills from a fixed block. That makes the live feed, totals, and lookups instant and cheap. The contract stays the source of truth that every certificate is checked against.
+
 ## Notes
 - **USDC decimals on Arc:** the native gas balance uses 18 decimals; the USDC ERC-20 interface (`0x3600000000000000000000000000000000000000`) uses 6. The contract and app use only the 6-decimal ERC-20 interface.
 - **`npm audit` warnings:** you will see warnings about WalletConnect dependencies. The only fix npm offers is wagmi v3, which RainbowKit doesn't support yet, so we're staying on wagmi v2 for the hackathon.
