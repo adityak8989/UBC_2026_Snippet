@@ -48,7 +48,7 @@ function Certificate() {
   const txHint = searchParams.get("tx");
   const { data: txHash, isLoading: txLoading } = useQuery({
     queryKey: ["licenseTx", params.id, txHint],
-    queryFn: () => findLicenseTx(client!, licenseId, txHint),
+    queryFn: () => findLicenseTx(client!, licenseId, txHint, license?.timestamp),
     enabled: exists && !!client,
     staleTime: Infinity,
   });

@@ -32,7 +32,8 @@ Update this list in the same commit that finishes each item.
 - [ ] Supabase tables + private storage bucket, 3 clip files uploaded with sha256 hashes
 - [ ] QuickNode Stream → `/api/streams` webhook → `license_events`
 - [ ] Live "licenses sold" feed on `/`
-- [ ] `/check` "Is this take cleared?" page
+- [x] `/check` "Is this take cleared?" page (hashes in the browser, matches on-chain fileHash; licenses listed via the Arc explorer API rather than Streams for now)
+- [x] License certificate page `/license/[id]` and purchase receipt
 - [ ] `/licenses` page with downloads
 - [ ] Feature freeze + full demo run on the deployed site
 

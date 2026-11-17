@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { Logo } from "./Logo";
 
-export function SiteHeader() {
-  const pathname = usePathname();
-  const onCheck = pathname === "/check";
+// `active` highlights the current page in the nav. (A prop rather than usePathname, which would
+// make every page using the header dynamic under Cache Components.)
+export function SiteHeader({ active }: { active?: "check" } = {}) {
+  const onCheck = active === "check";
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur-md">

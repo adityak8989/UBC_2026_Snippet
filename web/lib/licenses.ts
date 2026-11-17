@@ -1,4 +1,4 @@
-import { decodeEventLog, parseEventLogs, toHex, type PublicClient } from "viem";
+import { parseEventLogs, toHex, type PublicClient } from "viem";
 import { SnippetLicensesAbi } from "./abi";
 import { SNIPPET_LICENSES_ADDRESS } from "./arc";
 
@@ -11,9 +11,46 @@ export const USE_TYPE_NAMES = ["Editorial", "Social", "Commercial"] as const;
 // keccak256("LicenseIssued(uint256,bytes32,address,bytes32,uint8,uint256,uint256,uint256,uint256,uint64)")
 const LICENSE_ISSUED_TOPIC = "0x019c42efa4a2ed077d7577fc401e2f0dfcf241fd5f419761e314dd00c73cfd8d";
 
-// Finds the transaction that issued a license. Uses the tx hash from the receipt link when it really
-// issued this license; otherwise asks the explorer, because the public RPC can't search old blocks.
+// Finds the transaction that issued a license, in order:
+//   1. the tx hash from the receipt link, if it really issued this license;
+//   2. the explorer API (one request, but it rate limits);
+//   3. the public RPC: find the block at the license's timestamp, then search a small window of logs
+//      (the RPC refuses log searches over thousands of blocks, so it can't scan from the start).
 export async function findLicenseTx(
+  client: PublicClient,
+  licenseId: bigint,
+  hint?: string | null,
+  timestamp?: bigint,
+): Promise<`0x${string}` | null> {
+  const viaHintOrExplorer = await findViaHintOrExplorer(client, licenseId, hint).catch(() => null);
+  if (viaHintOrExplorer) return viaHintOrExplorer;
+  if (timestamp === undefined) return null;
+  return findViaRpc(client, licenseId, timestamp).catch(() => null);
+}
+
+async function findViaRpc(client: PublicClient, licenseId: bigint, timestamp: bigint) {
+  // Binary search for the last block at or before the license timestamp (about 27 lookups).
+  let lo = BigInt(0);
+  let hi = await client.getBlockNumber();
+  while (lo < hi) {
+    const mid = (lo + hi + BigInt(1)) / BigInt(2);
+    const block = await client.getBlock({ blockNumber: mid });
+    if (block.timestamp <= timestamp) lo = mid;
+    else hi = mid - BigInt(1);
+  }
+  // Timestamps have 1 s granularity and Arc makes ~2 blocks per second, so search around it.
+  const logs = await client.getContractEvents({
+    address: SNIPPET_LICENSES_ADDRESS,
+    abi: SnippetLicensesAbi,
+    eventName: "LicenseIssued",
+    args: { licenseId },
+    fromBlock: lo > BigInt(100) ? lo - BigInt(100) : BigInt(0),
+    toBlock: lo + BigInt(100),
+  });
+  return logs[0]?.transactionHash ?? null;
+}
+
+async function findViaHintOrExplorer(
   client: PublicClient,
   licenseId: bigint,
   hint?: string | null,
@@ -59,37 +96,36 @@ export interface SoldLicense {
   timestamp: bigint;
 }
 
-// Every license sold for one clip, oldest first, from the explorer's index of LicenseIssued events.
-export async function fetchClipLicenses(clipId: `0x${string}`): Promise<SoldLicense[]> {
-  const params = new URLSearchParams({
-    module: "logs",
-    action: "getLogs",
+// Every license sold for one clip, oldest first, read straight from the contract: licenseCount,
+// then getLicense for each id. No explorer needed (its API rate limits), and fine at demo scale.
+const MAX_LICENSES_SCANNED = 500;
+
+export async function fetchClipLicenses(client: PublicClient, clipId: `0x${string}`): Promise<SoldLicense[]> {
+  const count = await client.readContract({
     address: SNIPPET_LICENSES_ADDRESS,
-    fromBlock: "0",
-    toBlock: "latest",
-    topic0: LICENSE_ISSUED_TOPIC,
-    topic2: clipId,
-    topic0_2_opr: "and",
+    abi: SnippetLicensesAbi,
+    functionName: "licenseCount",
   });
-  const res = await fetch(`${EXPLORER_API}?${params}`);
-  if (!res.ok) throw new Error(`Explorer returned ${res.status}`);
-  const json = (await res.json()) as { result?: { topics: (`0x${string}` | null)[]; data: `0x${string}` }[] | string };
-  if (!Array.isArray(json.result)) return [];
-  return json.result
-    .map((log) => {
-      const { args } = decodeEventLog({
-        abi: SnippetLicensesAbi,
-        eventName: "LicenseIssued",
-        topics: log.topics.filter((t): t is `0x${string}` => !!t) as [`0x${string}`, ...`0x${string}`[]],
-        data: log.data,
-      });
-      return {
-        licenseId: args.licenseId,
-        buyer: args.buyer,
-        useType: args.useType,
-        price: args.price,
-        timestamp: args.timestamp,
-      };
-    })
-    .sort((a, b) => (a.licenseId < b.licenseId ? -1 : 1));
+  const total = Number(count < BigInt(MAX_LICENSES_SCANNED) ? count : BigInt(MAX_LICENSES_SCANNED));
+  const ids = Array.from({ length: total }, (_, i) => BigInt(i + 1));
+
+  const sold: SoldLicense[] = [];
+  for (let i = 0; i < ids.length; i += 20) {
+    const batch = await Promise.all(
+      ids.slice(i, i + 20).map((id) =>
+        client.readContract({
+          address: SNIPPET_LICENSES_ADDRESS,
+          abi: SnippetLicensesAbi,
+          functionName: "getLicense",
+          args: [id],
+        }),
+      ),
+    );
+    batch.forEach((l, j) => {
+      if (l.clipId.toLowerCase() === clipId.toLowerCase()) {
+        sold.push({ licenseId: ids[i + j], buyer: l.buyer, useType: l.useType, price: l.price, timestamp: l.timestamp });
+      }
+    });
+  }
+  return sold;
 }

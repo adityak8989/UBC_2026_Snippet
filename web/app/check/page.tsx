@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { useReadContracts } from "wagmi";
+import { usePublicClient, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SnippetLicensesAbi } from "@/lib/abi";
@@ -48,10 +48,11 @@ export default function CheckPage() {
       : -1;
   const match = matchIndex >= 0 ? { clip: DEMO_CLIPS[matchIndex], record: onchain![matchIndex].result! } : undefined;
 
+  const client = usePublicClient({ chainId: ARC_TESTNET_CHAIN_ID });
   const { data: sold, isLoading: soldLoading, isError: soldError } = useQuery({
     queryKey: ["clipLicenses", match?.clip.clipIdBytes32],
-    queryFn: () => fetchClipLicenses(match!.clip.clipIdBytes32),
-    enabled: !!match,
+    queryFn: () => fetchClipLicenses(client!, match!.clip.clipIdBytes32),
+    enabled: !!match && !!client,
   });
 
   const handleFile = async (file: File | undefined) => {
@@ -67,7 +68,7 @@ export default function CheckPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader />
+      <SiteHeader active="check" />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-10">
         <div className="flex flex-col gap-2 text-center">
           <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Is this take cleared?</h1>
