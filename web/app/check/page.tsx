@@ -49,11 +49,13 @@ export default function CheckPage() {
   const match = matchIndex >= 0 ? { clip: DEMO_CLIPS[matchIndex], record: onchain![matchIndex].result! } : undefined;
 
   const client = usePublicClient({ chainId: ARC_TESTNET_CHAIN_ID });
-  const { data: sold, isLoading: soldLoading, isError: soldError } = useQuery({
+  // QuickNode Streams' license_events first, contract reads as the fallback.
+  const { data: soldResult, isLoading: soldLoading, isError: soldError } = useQuery({
     queryKey: ["clipLicenses", match?.clip.clipIdBytes32],
     queryFn: () => fetchClipLicenses(client!, match!.clip.clipIdBytes32),
     enabled: !!match && !!client,
   });
+  const sold = soldResult?.licenses;
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
@@ -171,8 +173,13 @@ export default function CheckPage() {
               </div>
 
               <div>
-                <p className="mb-2 text-xs uppercase tracking-wider text-muted">
-                  Licenses sold{sold ? ` (${sold.length})` : ""}
+                <p className="mb-2 flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-muted">
+                  <span>Licenses sold{sold ? ` (${sold.length})` : ""}</span>
+                  {soldResult && (
+                    <span className="normal-case tracking-normal">
+                      · {soldResult.source === "streams" ? "via QuickNode Streams" : "read from Arc"}
+                    </span>
+                  )}
                 </p>
                 {soldLoading ? (
                   <div className="h-12 animate-pulse rounded-xl bg-surface-2" />

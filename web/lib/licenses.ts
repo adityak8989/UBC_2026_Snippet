@@ -1,6 +1,7 @@
 import { parseEventLogs, toHex, type PublicClient } from "viem";
 import { SnippetLicensesAbi } from "./abi";
 import { SNIPPET_LICENSES_ADDRESS } from "./arc";
+import { fetchLicenseEventsForClip, streamsConfigured } from "./licenseEvents";
 
 export const EXPLORER_URL = "https://testnet.arcscan.app";
 // Blockscout API behind testnet.arcscan.app (allows cross origin requests).
@@ -96,11 +97,36 @@ export interface SoldLicense {
   timestamp: bigint;
 }
 
-// Every license sold for one clip, oldest first, read straight from the contract: licenseCount,
-// then getLicense for each id. No explorer needed (its API rate limits), and fine at demo scale.
+// Every license sold for one clip, oldest first. QuickNode Streams' license_events index first;
+// if Supabase isn't configured or fails, read the contract directly.
+export async function fetchClipLicenses(
+  client: PublicClient,
+  clipId: `0x${string}`,
+): Promise<{ source: "streams" | "chain"; licenses: SoldLicense[] }> {
+  if (streamsConfigured) {
+    try {
+      const events = await fetchLicenseEventsForClip(clipId);
+      return {
+        source: "streams",
+        licenses: events.map((e) => ({
+          licenseId: e.licenseId,
+          buyer: e.buyer,
+          useType: e.useType,
+          price: e.price,
+          timestamp: BigInt(Math.floor(e.blockTimestamp.getTime() / 1000)),
+        })),
+      };
+    } catch (err) {
+      console.warn("License list: Supabase unavailable, reading the contract instead", err);
+    }
+  }
+  return { source: "chain", licenses: await fetchClipLicensesFromChain(client, clipId) };
+}
+
+// Contract fallback: licenseCount, then getLicense for each id. Fine at demo scale.
 const MAX_LICENSES_SCANNED = 500;
 
-export async function fetchClipLicenses(client: PublicClient, clipId: `0x${string}`): Promise<SoldLicense[]> {
+async function fetchClipLicensesFromChain(client: PublicClient, clipId: `0x${string}`): Promise<SoldLicense[]> {
   const count = await client.readContract({
     address: SNIPPET_LICENSES_ADDRESS,
     abi: SnippetLicensesAbi,

@@ -11,6 +11,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SnippetLicensesAbi } from "@/lib/abi";
 import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS, USDC_DECIMALS } from "@/lib/arc";
 import { DEMO_CLIPS } from "@/lib/clips";
+import { fetchLicenseEvent, streamsConfigured } from "@/lib/licenseEvents";
 import { EXPLORER_URL, USE_TYPE_NAMES, findLicenseTx } from "@/lib/licenses";
 
 export default function LicensePage() {
@@ -43,24 +44,42 @@ function Certificate() {
     query: { enabled: validId },
   });
 
-  const client = usePublicClient({ chainId: ARC_TESTNET_CHAIN_ID });
-  const exists = !!license && license.buyer !== zeroAddress;
-  const txHint = searchParams.get("tx");
-  const { data: txHash, isLoading: txLoading } = useQuery({
-    queryKey: ["licenseTx", params.id, txHint],
-    queryFn: () => findLicenseTx(client!, licenseId, txHint, license?.timestamp),
-    enabled: exists && !!client,
-    staleTime: Infinity,
+  // QuickNode Streams index first: fast, and it carries the tx hash. The chain read above verifies it.
+  const { data: event, isLoading: eventLoading } = useQuery({
+    queryKey: ["licenseEvent", params.id],
+    queryFn: () => fetchLicenseEvent(licenseId),
+    enabled: validId && streamsConfigured,
+    retry: 1,
   });
 
-  if (!validId || (license && !exists)) {
+  const client = usePublicClient({ chainId: ARC_TESTNET_CHAIN_ID });
+  const exists = !!license && license.buyer !== zeroAddress;
+  const chainRecord = exists ? license : undefined;
+  const txHint = searchParams.get("tx");
+  const { data: foundTx, isLoading: txSearching } = useQuery({
+    queryKey: ["licenseTx", params.id, txHint],
+    queryFn: () => findLicenseTx(client!, licenseId, txHint, license?.timestamp),
+    enabled: exists && !!client && !event?.txHash && !eventLoading,
+    staleTime: Infinity,
+  });
+  const txHash = event?.txHash ?? foundTx;
+  const txLoading = !txHash && (eventLoading || txSearching);
+
+  // What the certificate shows: the Streams row if we have it, otherwise the chain record.
+  const view = event
+    ? { ...event, issuedAt: event.blockTimestamp }
+    : chainRecord
+      ? { ...chainRecord, issuedAt: new Date(Number(chainRecord.timestamp) * 1000) }
+      : undefined;
+
+  if (!validId || (license && !exists && !event)) {
     return (
       <Notice title={`License #${params.id} not found`}>
         No license with this number has been recorded on the Snippet contract yet.
       </Notice>
     );
   }
-  if (isError) {
+  if (isError && !event) {
     return (
       <Notice title="Could not reach Arc testnet">
         The license could not be read right now. Check your connection and{" "}
@@ -71,19 +90,34 @@ function Certificate() {
       </Notice>
     );
   }
-  if (isLoading || !license) return <CertificateSkeleton />;
+  if (!view) return <CertificateSkeleton />;
 
-  const clip = DEMO_CLIPS.find((c) => c.clipIdBytes32.toLowerCase() === license.clipId.toLowerCase());
-  const hashMatches = !!clip && clip.fileHash.toLowerCase() === license.fileHash.toLowerCase();
-  const issuedAt = new Date(Number(license.timestamp) * 1000).toLocaleString("en-US", {
+  const clip = DEMO_CLIPS.find((c) => c.clipIdBytes32.toLowerCase() === view.clipId.toLowerCase());
+  // "Verified on Arc" only after the chain agrees: the license exists, its file hash is the clip's
+  // master, and (when shown from the Streams index) the indexed row matches the chain record.
+  const sameAsChain =
+    !!chainRecord &&
+    (!event ||
+      (event.buyer.toLowerCase() === chainRecord.buyer.toLowerCase() &&
+        event.price === chainRecord.price &&
+        event.fileHash.toLowerCase() === chainRecord.fileHash.toLowerCase() &&
+        event.clipId.toLowerCase() === chainRecord.clipId.toLowerCase()));
+  const verification: "verifying" | "verified" | "unverifiable" | "mismatch" = isLoading
+    ? "verifying"
+    : isError
+      ? "unverifiable"
+      : sameAsChain && !!clip && clip.fileHash.toLowerCase() === chainRecord!.fileHash.toLowerCase()
+        ? "verified"
+        : "mismatch";
+  const issuedAt = view.issuedAt.toLocaleString("en-US", {
     dateStyle: "long",
     timeStyle: "short",
     timeZone: "UTC",
   });
   const payouts = [
-    { label: "Creator", units: license.rhAmount },
-    ...(license.contribAmount > BigInt(0) ? [{ label: "Contributor", units: license.contribAmount }] : []),
-    { label: "Snippet", units: license.platformAmount },
+    { label: "Creator", units: view.rhAmount },
+    ...(view.contribAmount > BigInt(0) ? [{ label: "Contributor", units: view.contribAmount }] : []),
+    { label: "Snippet", units: view.platformAmount },
   ];
 
   return (
@@ -105,13 +139,21 @@ function Certificate() {
               <p className="font-display text-2xl font-bold">No. {params.id.padStart(4, "0")}</p>
             </div>
           </div>
-          {hashMatches ? (
+          {verification === "verified" ? (
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-success/50 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
               <span aria-hidden="true">✓</span> Verified on Arc
             </span>
+          ) : verification === "verifying" ? (
+            <span className="inline-flex w-fit animate-pulse rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted">
+              Verifying on Arc…
+            </span>
+          ) : verification === "unverifiable" ? (
+            <span className="inline-flex w-fit rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted">
+              Could not reach Arc to verify
+            </span>
           ) : (
             <span className="inline-flex w-fit rounded-full border border-primary/50 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              File hash does not match the catalog
+              Does not match the record on Arc
             </span>
           )}
         </header>
@@ -127,14 +169,14 @@ function Certificate() {
         <dl className="mt-6 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           <Field label="Use type">
             <span className="rounded-md bg-primary/15 px-2 py-0.5 font-semibold text-primary">
-              {USE_TYPE_NAMES[license.useType] ?? "Unknown"}
+              {USE_TYPE_NAMES[view.useType] ?? "Unknown"}
             </span>
           </Field>
           <Field label="Price paid">
-            <span className="font-display text-lg font-bold">${usdc(license.price)} USDC</span>
+            <span className="font-display text-lg font-bold">${usdc(view.price)} USDC</span>
           </Field>
           <Field label="Licensee" wide>
-            <code className="break-all font-mono text-xs">{license.buyer}</code>
+            <code className="break-all font-mono text-xs">{view.buyer}</code>
           </Field>
           <Field label="Issued">{issuedAt} UTC</Field>
           <Field label="Terms">Nonexclusive, recorded permanently on Arc testnet</Field>
@@ -154,7 +196,7 @@ function Certificate() {
 
         <dl className="mt-6 flex flex-col gap-4">
           <Field label="Master file hash (SHA256)">
-            <code className="break-all font-mono text-xs">{license.fileHash}</code>
+            <code className="break-all font-mono text-xs">{view.fileHash}</code>
           </Field>
           <Field label="Transaction">
             {txHash ? (
@@ -182,8 +224,9 @@ function Certificate() {
         </dl>
 
         <footer className="mt-6 border-t border-dashed border-line pt-4 text-[11px] leading-relaxed text-muted">
-          Read live from the SnippetLicenses contract{" "}
-          <code className="break-all font-mono">{SNIPPET_LICENSES_ADDRESS}</code> on Arc testnet (chain 5042002).
+          {event ? "Indexed by QuickNode Streams and checked against" : "Read live from"} the SnippetLicenses
+          contract <code className="break-all font-mono">{SNIPPET_LICENSES_ADDRESS}</code> on Arc testnet (chain
+          5042002).
         </footer>
       </article>
 
