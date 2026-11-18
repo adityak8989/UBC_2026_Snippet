@@ -1,19 +1,42 @@
 import type { Creator } from "@/lib/creators";
 
-/** Initials avatar + creator name; `withBio` adds the one-line bio underneath (clip page). */
+/**
+ * Round avatar (pixel art stays crisp) + creator name. Falls back to initials when the creator has no avatar.
+ * `withBio` is the clip page version: 36px avatar, a "Creator" label and the one-line bio; otherwise 24px.
+ */
 export function CreatorBadge({ creator, withBio = false }: { creator: Creator; withBio?: boolean }) {
+  const size = withBio ? "h-9 w-9" : "h-6 w-6";
   return (
     <span className="inline-flex min-w-0 items-center gap-2" title={withBio ? undefined : creator.bio}>
-      <span
-        aria-hidden="true"
-        className={`flex shrink-0 items-center justify-center rounded-full border border-primary/40 bg-primary/15 font-display font-bold text-primary-text ${
-          withBio ? "h-9 w-9 text-xs" : "h-6 w-6 text-[10px]"
-        }`}
-      >
-        {creator.initials}
-      </span>
+      {creator.avatar ? (
+        // A plain <img>: next/image would rasterize the SVG; it is tiny and already square.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={creator.avatar}
+          alt=""
+          width={withBio ? 36 : 24}
+          height={withBio ? 36 : 24}
+          className={`${size} shrink-0 rounded-full border border-line bg-surface-2 [image-rendering:pixelated]`}
+        />
+      ) : (
+        <span
+          aria-hidden="true"
+          className={`${size} flex shrink-0 items-center justify-center rounded-full border border-primary/40 bg-primary/15 font-display font-bold text-primary-text ${
+            withBio ? "text-xs" : "text-[10px]"
+          }`}
+        >
+          {creator.initials}
+        </span>
+      )}
       <span className="flex min-w-0 flex-col leading-tight">
-        <span className={`truncate font-semibold text-ink ${withBio ? "text-sm" : "text-xs"}`}>{creator.name}</span>
+        <span className="flex items-center gap-1.5">
+          <span className={`truncate font-semibold text-ink ${withBio ? "text-sm" : "text-xs"}`}>{creator.name}</span>
+          {withBio && (
+            <span className="rounded border border-line px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider text-muted">
+              Creator
+            </span>
+          )}
+        </span>
         {withBio && <span className="truncate text-xs text-muted">{creator.bio}</span>}
       </span>
     </span>

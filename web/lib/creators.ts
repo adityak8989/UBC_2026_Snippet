@@ -4,12 +4,18 @@ import type { Clip } from "./clips";
 // share is the clip's rights-holder share.
 export interface Creator {
   name: string;
-  initials: string; // shown in the avatar badge
+  initials: string; // avatar fallback when there is no image
+  avatar?: string; // square image under public/, e.g. a pixel-art SVG
   bio: string; // one line
 }
 
 export const CREATORS: Record<string, Creator> = {
-  spacelofi: { name: "SpaceLofi", initials: "SL", bio: "Streams COD, Valorant and Monster Hunter" },
+  spacelofi: {
+    name: "SpaceLofi",
+    initials: "SL",
+    avatar: "/creators/spacelofi.svg",
+    bio: "Streams COD, Valorant and Monster Hunter",
+  },
 };
 
 export function getCreator(clip: Pick<Clip, "creator"> | undefined): Creator | undefined {
