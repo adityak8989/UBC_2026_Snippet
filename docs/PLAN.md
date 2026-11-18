@@ -29,9 +29,10 @@ Update this list in the same commit that finishes each item.
 - [x] Site deployed on Vercel: https://snippet-gamma.vercel.app
 
 **Wed: data + feed**
-- [ ] Supabase tables + private storage bucket, 3 clip files uploaded with sha256 hashes
-- [ ] QuickNode Stream → `/api/streams` webhook → `license_events`
-- [ ] Live "licenses sold" feed on `/`
+- [x] Supabase `license_events` table (public read only via RLS, Realtime on)
+- [ ] Private storage bucket for the master clip files (still served from `web/public/clips`)
+- [x] QuickNode Stream → `/api/streams` webhook → `license_events`: verified end to end with license #4 (block 72800463, [tx](https://testnet.arcscan.app/tx/0x4d5f9d08a02cf8a0a424c93383e3f39526105bcda744a6db0ed2a225a0a9029d)), written 2.1 s after the block
+- [x] Live "licenses sold" feed on `/` ("Live via QuickNode Streams", Realtime updates)
 - [x] `/check` "Check License" page (hashes in the browser, matches the on-chain fileHash; licenses sold are read from QuickNode Streams' `license_events` first, with the contract as fallback)
 - [x] License certificate page `/license/[id]` and purchase receipt
 - [ ] `/licenses` page with downloads
