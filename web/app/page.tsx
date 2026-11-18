@@ -5,6 +5,7 @@ import { LicensesFeed } from "@/components/LicensesFeed";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { CreatorBadge } from "@/components/CreatorBadge";
 import { QuoteSearch } from "@/components/QuoteSearch";
+import { RightsExplainer } from "@/components/RightsExplainer";
 import { REPO_URL } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { LISTED_CLIPS } from "@/lib/clips";
@@ -158,6 +159,9 @@ export default function Home() {
             })}
           </div>
         </section>
+
+        {/* What each content type allows */}
+        <RightsExplainer />
 
         {/* Live feed of licenses sold, from QuickNode Streams */}
         <LicensesFeed />
