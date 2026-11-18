@@ -10,6 +10,7 @@ import { DEMO_CLIPS } from "@/lib/clips";
 import { getCreator } from "@/lib/creators";
 import { USE_TYPE_NAMES, fetchBuyerLicenses } from "@/lib/licenses";
 import { formatUsdUnits } from "@/lib/money";
+import { getSmartAccountAddress, loadPasskey, passkeyConfigured } from "@/lib/passkey";
 import { useIsClient } from "@/lib/useIsClient";
 
 // "My licenses": every license the connected wallet owns, newest first (license_events from QuickNode
@@ -39,9 +40,21 @@ export default function MyLicensesPage() {
 function LicenseList() {
   // Wallet state only after hydration, so the first client render matches the server HTML.
   const isClient = useIsClient();
-  const { address, isConnected } = useAccount();
+  const { address: walletAddress, isConnected } = useAccount();
   const client = usePublicClient({ chainId: ARC_TESTNET_CHAIN_ID });
-  const connected = isClient && isConnected && !!address;
+  const walletConnected = isClient && isConnected && !!walletAddress;
+
+  // No wallet connected but a passkey on this device (passkey checkout): show the passkey account's
+  // licenses. The connected wallet always wins.
+  const passkey = isClient && !walletConnected && passkeyConfigured ? loadPasskey() : undefined;
+  const { data: passkeyAddress } = useQuery({
+    queryKey: ["passkeyAddress", passkey?.id],
+    queryFn: () => getSmartAccountAddress(passkey!),
+    enabled: !!passkey,
+    staleTime: Infinity,
+  });
+  const address = walletConnected ? walletAddress : passkeyAddress;
+  const connected = !!address;
 
   const { data, isError, refetch } = useQuery({
     queryKey: ["myLicenses", address],
@@ -49,6 +62,13 @@ function LicenseList() {
     enabled: connected && !!client,
   });
 
+  if (!connected && passkey) {
+    return (
+      <ul className="flex flex-col gap-3" aria-label="Loading your passkey account">
+        <li className="h-28 animate-pulse rounded-2xl border border-line bg-surface" />
+      </ul>
+    );
+  }
   if (!connected) {
     return (
       <Panel>
@@ -97,6 +117,7 @@ function LicenseList() {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-muted">
+        {!walletConnected && <>Passkey account {address!.slice(0, 6)}…{address!.slice(-4)} · </>}
         {data.licenses.length} {data.licenses.length === 1 ? "license" : "licenses"} ·{" "}
         {data.source === "streams" ? "indexed by QuickNode Streams" : "read from the contract"}
       </p>
