@@ -46,7 +46,7 @@ Update this list in the same commit that finishes each item.
 - [x] SpaceLofi's 3 stream clips (clip-4..6) added: masters, transcripts, prices 5 / 15 / Commercial not for sale
 - [x] Previews + posters for clip-4..6 (720p max, audio kept for captions, faststart)
 - [x] On-chain: ListClips (clip-4..6) and DelistClips (clip-1..3); `npm run verify-onchain` passes
-- [ ] Site redeployed
+- [x] Site redeployed (clip-4..6, captions, search live on snippet-gamma.vercel.app)
 
 **Thu–Fri: ship**
 - [ ] Bug fixes from review
