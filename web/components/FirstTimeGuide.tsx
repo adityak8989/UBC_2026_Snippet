@@ -3,12 +3,17 @@
 import { useState, useSyncExternalStore } from "react";
 import { ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
 
-// "New here?": a small pill next to Connect Wallet that opens a three step guide on click, so it never
-// covers the page. Shown only on the homepage and clip pages (SiteHeader `guide`), hidden once a wallet
-// connects. Dismissing it (×) is remembered in localStorage, a per browser convenience; every access is
-// wrapped because storage can be blocked or throw in private windows.
+// "New here?": a small pill next to Connect Wallet that opens a three step guide. Shown only on the
+// homepage and clip pages (SiteHeader `guide`), hidden once a wallet connects.
+// - Homepage (`autoOpen`): the panel opens by itself on wide screens (>= 1280px, where it fits beside the
+//   hero headline) until the visitor closes it; × collapses it to the pill for the rest of the session.
+// - Clip pages and narrower screens: pill only, opens on click.
+// - "Got it, don't show this again" hides it for good (localStorage).
+// Storage is a per browser convenience; every access is wrapped because it can be blocked or throw.
 
 const STORAGE_KEY = "snippet.firstTimeGuide.dismissed";
+const SESSION_COLLAPSED_KEY = "snippet.firstTimeGuide.collapsed";
+const AUTO_OPEN_MEDIA = "(min-width: 1280px)";
 
 // Public values for wallet_addEthereumChain (EIP 3085). Arc uses USDC as gas: the native balance has
 // 18 decimals (see lib/arc.ts).
@@ -33,6 +38,27 @@ function subscribe(onChange: () => void) {
   listeners.add(onChange);
   return () => listeners.delete(onChange);
 }
+function readCollapsedThisSession() {
+  try {
+    return window.sessionStorage.getItem(SESSION_COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function rememberCollapsed() {
+  try {
+    window.sessionStorage.setItem(SESSION_COLLAPSED_KEY, "1");
+  } catch {
+    // storage blocked: it may auto open again on the next page load
+  }
+}
+// Wide enough for the panel to sit beside the headline (checked at 1280, 1440 and 1536px).
+function subscribeWide(onChange: () => void) {
+  const mq = window.matchMedia(AUTO_OPEN_MEDIA);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
 function dismiss() {
   try {
     window.localStorage.setItem(STORAGE_KEY, "1");
@@ -49,14 +75,26 @@ interface Eip1193 {
   request(args: { method: string; params?: unknown[] }): Promise<unknown>;
 }
 
-export function FirstTimeGuide() {
+export function FirstTimeGuide({ autoOpen = false }: { autoOpen?: boolean }) {
   // Server render and first paint: hidden, so nothing flashes for people who already dismissed it.
   const dismissed = useSyncExternalStore(
     subscribe,
     () => hiddenThisVisit || readDismissed(),
     () => true,
   );
-  const [open, setOpen] = useState(false);
+  const wide = useSyncExternalStore(
+    subscribeWide,
+    () => window.matchMedia(AUTO_OPEN_MEDIA).matches,
+    () => false,
+  );
+  // null = the visitor hasn't touched it yet on this page: follow the auto open rule.
+  const [userOpen, setUserOpen] = useState<boolean | null>(null);
+  const [collapsedThisSession] = useState(readCollapsedThisSession);
+  const open = userOpen ?? (autoOpen && wide && !collapsedThisSession);
+  const close = () => {
+    setUserOpen(false);
+    rememberCollapsed();
+  };
   const [addState, setAddState] = useState<AddState>("idle");
 
   if (dismissed) return null;
@@ -80,7 +118,7 @@ export function FirstTimeGuide() {
     <>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => (open ? close() : setUserOpen(true))}
         aria-expanded={open}
         aria-controls="first-time-guide"
         aria-label="New here? Open the three step guide"
@@ -98,13 +136,15 @@ export function FirstTimeGuide() {
         <aside
           id="first-time-guide"
           aria-label="New here?"
-          className="absolute right-4 top-full z-30 mt-2 w-[calc(100vw-2rem)] max-w-xs rounded-2xl border border-line bg-surface p-4 shadow-xl shadow-black/40"
+          // Anchored to the sticky header (full viewport width), 16px from the right edge, so at 1280px and
+          // up it sits to the right of the centered hero headline instead of over it.
+          className="absolute right-4 top-full z-30 mt-2 w-[calc(100vw-2rem)] max-w-72 rounded-2xl border border-line bg-surface p-4 shadow-xl shadow-black/40"
         >
           <div className="flex items-start justify-between gap-2">
             <p className="font-display text-sm font-bold">New here? Three steps</p>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={close}
               aria-label="Close the guide"
               className="-mr-1 -mt-1 cursor-pointer rounded-md px-1.5 text-lg leading-none text-muted hover:text-ink"
             >

@@ -18,7 +18,7 @@ import { EXPLORER_URL } from "@/lib/licenses";
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader guide />
+      <SiteHeader guide="auto" />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-10 px-4 py-10">
         {/* Hero */}

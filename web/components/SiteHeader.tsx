@@ -9,17 +9,21 @@ import { Logo } from "./Logo";
 
 // `active` highlights the current page in the nav. (A prop rather than usePathname, which would
 // make every page using the header dynamic under Cache Components.) `guide` shows the "New here?" pill
-// (homepage and clip pages only).
-export function SiteHeader({ active, guide = false }: { active?: "check" | "licenses"; guide?: boolean } = {}) {
+// (homepage and clip pages only); "auto" also opens it by itself on wide screens (homepage).
+export function SiteHeader({
+  active,
+  guide = false,
+}: { active?: "check" | "licenses"; guide?: boolean | "auto" } = {}) {
   const onCheck = active === "check";
   const onLicenses = active === "licenses";
   // The guide pill sits next to Connect Wallet until a wallet is connected (or it is dismissed).
   const isClient = useIsClient();
-  const { isConnected } = useAccount();
+  // "disconnected" only: while wagmi reconnects a returning wallet, don't flash the guide open.
+  const { status } = useAccount();
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur-md">
-      <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" aria-label="Snippet home" className="rounded-lg">
             <Logo compact />
@@ -49,7 +53,7 @@ export function SiteHeader({ active, guide = false }: { active?: "check" | "lice
             <span className="sm:hidden">Licenses</span>
             <span className="hidden sm:inline">My licenses</span>
           </Link>
-          {guide && isClient && !isConnected && <FirstTimeGuide />}
+          {guide && isClient && status === "disconnected" && <FirstTimeGuide autoOpen={guide === "auto"} />}
           <ConnectButton showBalance={false} chainStatus="icon" accountStatus="address" />
         </nav>
       </div>
