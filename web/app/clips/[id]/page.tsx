@@ -14,6 +14,7 @@ import {
 import { friendlyTxError } from "@/lib/errors";
 import { useIsClient } from "@/lib/useIsClient";
 import { parseEventLogs, parseUnits } from "viem";
+import { PasskeyCheckout } from "@/components/PasskeyCheckout";
 import { PurchaseReceipt } from "@/components/PurchaseReceipt";
 import { arcPaymentLine, formatUsd, formatUsdc } from "@/lib/money";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
@@ -616,6 +617,14 @@ function ClipDetailContent() {
                 </p>
               )}
             </div>
+
+            {/* Second way to buy: a Circle passkey smart account, no browser wallet (lib/passkey.ts) */}
+            <PasskeyCheckout
+              clip={clip}
+              useType={USE_TYPE_INDEX[selectedTier]}
+              priceUsd={priceUsd}
+              priceUnits={priceUnits}
+            />
           </div>
         </div>
       </main>

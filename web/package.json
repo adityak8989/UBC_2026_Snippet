@@ -13,6 +13,7 @@
     "add-clip": "node scripts/add-clip.mjs"
   },
   "dependencies": {
+    "@circle-fin/modular-wallets-core": "1.0.16",
     "@rainbow-me/rainbowkit": "2.2.11",
     "@supabase/supabase-js": "2.118.0",
     "@tanstack/react-query": "5.105.0",
@@ -35,6 +36,9 @@
     "typescript": "^5"
   },
   "overrides": {
-    "@coinbase/cdp-sdk": "1.52.0"
+    "@coinbase/cdp-sdk": "1.52.0",
+    "@circle-fin/modular-wallets-core": {
+      "viem": "$viem"
+    }
   }
 }
