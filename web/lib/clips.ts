@@ -20,6 +20,11 @@ export interface Clip {
   creator?: string; // key into CREATORS (lib/creators.ts); the creator receives the rights-holder share
   description: string;
   show: string;
+  // Rights: "original" = the creator owns everything, all three uses are for sale.
+  // "gameplay" = the game footage belongs to `publisher`, so Commercial is not for sale (price 0;
+  // npm run check-clips enforces it).
+  contentType: "original" | "gameplay";
+  publisher?: string; // gameplay only, e.g. "Activision"
   speaker: string;
   contributorName: string;
   duration: string;

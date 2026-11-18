@@ -20,6 +20,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SyncedCaptions } from "@/components/SyncedCaptions";
 import { CreatorBadge } from "@/components/CreatorBadge";
 import { creatorPayoutLabel, getCreator } from "@/lib/creators";
+import { contentTypeLabel, rightsSummary } from "@/lib/rights";
 import { getSpokenTranscript } from "@/lib/captions";
 import { getClipById } from "@/lib/clips";
 import { USDC_ADDRESS, USDC_DECIMALS, SNIPPET_LICENSES_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
@@ -448,6 +449,15 @@ function ClipDetailContent() {
                   </button>
                 );
               })}
+            </div>
+
+            {/* Rights: who owns what, and why a use may be unavailable */}
+            <div className="flex flex-col gap-1.5 rounded-xl border border-line p-4">
+              <div className="flex items-center justify-between gap-2 text-xs font-semibold">
+                <span>Rights</span>
+                <span className="rounded bg-surface-2 px-2 py-0.5 text-muted">{contentTypeLabel(clip)}</span>
+              </div>
+              <p className="text-xs leading-relaxed text-muted">{rightsSummary(clip)}</p>
             </div>
 
             {/* Split Breakdown Visualizer */}

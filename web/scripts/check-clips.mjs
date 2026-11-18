@@ -1,7 +1,9 @@
 // Checks web/lib/clips.json before listing clips on-chain:
 // each fileHash is the sha256 of its file in public/, each clipIdBytes32 is keccak256(id),
 // each split sums to 10000 bps, the playback preview (not the master itself) and poster exist, every
-// price-0 (not for sale) use type has a note, and each transcript matches its master and manifest hash.
+// price-0 (not for sale) use type has a note, each transcript matches its master and manifest hash, and the
+// rights rules hold: "original" clips sell all three uses; "gameplay" clips name a publisher and never sell
+// Commercial (price 0).
 // Run from web/: npm run check-clips
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -23,6 +25,10 @@ for (const clip of clips) {
       clip.previewUrl !== clip.videoUrl &&
       [clip.previewUrl, clip.posterUrl].every((url) => url && existsSync(new URL(`../public${url}`, import.meta.url))),
     priceNotes: Object.entries(clip.prices).every(([use, price]) => price > 0 || !!clip.priceNotes?.[use]),
+    rights:
+      clip.contentType === "original"
+        ? !clip.publisher && Object.values(clip.prices).every((p) => p > 0)
+        : clip.contentType === "gameplay" && !!clip.publisher && clip.prices.commercial === 0,
   };
   const transcriptFile = new URL(`../lib/transcripts/${clip.id}.json`, import.meta.url);
   if (existsSync(transcriptFile)) {

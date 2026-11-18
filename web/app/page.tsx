@@ -9,6 +9,7 @@ import { REPO_URL } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { LISTED_CLIPS } from "@/lib/clips";
 import { getCreator } from "@/lib/creators";
+import { contentTypeLabel } from "@/lib/rights";
 import { SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { EXPLORER_URL } from "@/lib/licenses";
 
@@ -70,6 +71,9 @@ export default function Home() {
                       className="h-full w-full object-contain"
                     />
                     <PreviewWatermark />
+                    <div className="pointer-events-none absolute left-2 top-2 rounded bg-bg/80 px-2 py-0.5 text-[11px] font-semibold text-ink backdrop-blur-sm">
+                      {contentTypeLabel(clip)}
+                    </div>
                     <div className="pointer-events-none absolute right-2 top-2 rounded bg-bg/80 px-2 py-0.5 font-mono text-xs text-ink backdrop-blur-sm">
                       {clip.duration}
                     </div>
