@@ -1,10 +1,10 @@
 # Snippet
 
-License 30-second moments from podcasts, paid in USDC on **Arc testnet**.
+License short moments from streams and podcasts, paid in USDC on **Arc testnet**.
 
 A buyer picks a clip and a use type (Editorial, Social, or Commercial) and pays in USDC. The `SnippetLicenses` contract records the license on-chain: clip, file hash, buyer, price, use type, and timestamp. It pays the rights holder, the clip's contributor, and the platform in the same transaction. A live "licenses sold" feed and a "Check License" page read those on-chain events through QuickNode Streams.
 
-Hackathon project (UBC, Nov 2026). **Testnet only.** All demo clips come from our own recorded podcast.
+Hackathon project (UBC, Nov 2026). **Testnet only.** The clips for sale are our teammate Riya's (SpaceLofi) own stream clips; the first three test clips are delisted.
 
 **Live demo: https://snippet-gamma.vercel.app** (Arc testnet; contract [`0xfc6a…1fe20`](https://testnet.arcscan.app/address/0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20))
 

@@ -22,7 +22,7 @@ export default function Home() {
             License the moment. Pay everyone in it.
           </h1>
           <p className="text-lg text-muted">
-            Buy the rights to a 30 second clip in one checkout. The creator and everyone in the clip get paid the second you do.
+            Buy the rights to short moments from streams and podcasts in one checkout. The creator and everyone in the clip get paid the second you do.
           </p>
         </div>
 

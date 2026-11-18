@@ -16,7 +16,7 @@ const inter = Inter({
 
 const SITE_URL = "https://snippet-gamma.vercel.app";
 const DESCRIPTION =
-  "Snippet is a UBC 2026 hackathon demo on Arc testnet: license 30 second clips with testnet USDC, and the creator and everyone in the clip are paid in the same transaction. Exact amount approvals only; no real funds.";
+  "Snippet is a UBC 2026 hackathon demo on Arc testnet: license short moments from streams and podcasts with testnet USDC, and the creator and everyone in the clip are paid in the same transaction. Exact amount approvals only; no real funds.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
