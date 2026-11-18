@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -185,6 +185,24 @@ function ClipDetailContent() {
     if (isBuySuccess) refetchBalance();
   }, [isApproveSuccess, isBuySuccess, refetchAllowance, refetchBalance]);
 
+  // One-click buy: when "Buy license" needed an approval first, start buyLicense automatically
+  // as soon as that approval confirms (wallet confirmation 2 of 2).
+  const autoBuyAfterApproval = useRef(false);
+  useEffect(() => {
+    if (!autoBuyAfterApproval.current || !approvalConfirmed || !clip) return;
+    autoBuyAfterApproval.current = false;
+    writeBuy(
+      {
+        address: SNIPPET_LICENSES_ADDRESS,
+        abi: SnippetLicensesAbi,
+        functionName: "buyLicense",
+        args: [clip.clipIdBytes32, USE_TYPE_INDEX[selectedTier]],
+        chainId: ARC_TESTNET_CHAIN_ID,
+      },
+      { onSuccess: () => setBuySentAt(Date.now()) },
+    );
+  }, [approvalConfirmed, clip, selectedTier, writeBuy]);
+
   const txError = approveError || approveReceiptError || buyError || buyReceiptError;
   const friendlyError = txError ? friendlyTxError(txError) : undefined;
 
@@ -213,13 +231,17 @@ function ClipDetailContent() {
   const handleApprove = () => {
     if (!isContractReady) return;
     setApprovedUnits(priceUnits);
-    writeApprove({
-      address: USDC_ADDRESS,
-      abi: ERC20Abi,
-      functionName: "approve",
-      args: [SNIPPET_LICENSES_ADDRESS, priceUnits],
-      chainId: ARC_TESTNET_CHAIN_ID,
-    });
+    writeApprove(
+      {
+        address: USDC_ADDRESS,
+        abi: ERC20Abi,
+        functionName: "approve",
+        args: [SNIPPET_LICENSES_ADDRESS, priceUnits],
+        chainId: ARC_TESTNET_CHAIN_ID,
+      },
+      // Approval rejected or failed: don't fire the purchase later.
+      { onError: () => (autoBuyAfterApproval.current = false) },
+    );
   };
 
   const handleBuy = () => {
@@ -237,7 +259,35 @@ function ClipDetailContent() {
     );
   };
 
-  // Back to Step 1. The purchase spent the allowance, so read the fresh value before
+  // The single "Buy license" button: approve first only if the allowance doesn't cover the price;
+  // the effect above then sends buyLicense once the approval confirms.
+  const handleBuyClick = () => {
+    if (!isContractReady) return;
+    if (needsApproval) {
+      autoBuyAfterApproval.current = true;
+      handleApprove();
+    } else {
+      handleBuy();
+    }
+  };
+
+  // Progress text for the one button. Two wallet confirmations only when an approval was needed.
+  const twoStep = !!approveTxHash;
+  const awaitingAutoBuy = isApproveSuccess && !buyTxHash && !isBuyPending && !buyError;
+  const busy = isApprovePending || isApproveConfirming || isBuyPending || isBuyConfirming || awaitingAutoBuy;
+  const buyLabel = isApprovePending
+    ? "Confirm 1 of 2 in your wallet"
+    : isApproveConfirming
+      ? "Approving USDC on Arc (1 of 2)…"
+      : isBuyPending || awaitingAutoBuy
+        ? twoStep
+          ? "Confirm 2 of 2 in your wallet"
+          : "Confirm in your wallet"
+        : isBuyConfirming
+          ? "Purchasing license on Arc…"
+          : `Buy license · $${priceUsd} USDC`;
+
+  // Back to a fresh "Buy license". The purchase spent the allowance, so read the fresh value before
   // clearing the old transactions; otherwise Buy could briefly show as ready.
   const handleBuyAnother = async () => {
     if (issued) setLicensedUseTypes((prev) => new Set(prev).add(issued.useType));
@@ -425,22 +475,6 @@ function ClipDetailContent() {
                     </div>
                   )}
 
-                  {/* Step 1: Approve Button (hidden once this purchase is done) */}
-                  {needsApproval && !isBuySuccess && (
-                    <button
-                      type="button"
-                      onClick={handleApprove}
-                      disabled={notEnoughUsdc || isApprovePending || isApproveConfirming}
-                      className="w-full cursor-pointer rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary-text transition-colors hover:bg-primary/10 disabled:opacity-50"
-                    >
-                      {isApprovePending
-                        ? "Check Wallet to Approve..."
-                        : isApproveConfirming
-                        ? "Confirming Approval on Arc..."
-                        : `Step 1: Approve $${priceUsd} USDC`}
-                    </button>
-                  )}
-
                   {/* After a purchase: the receipt, then "Buy another license" instead of Buy */}
                   {isBuySuccess && buyTxHash ? (
                     <>
@@ -471,20 +505,24 @@ function ClipDetailContent() {
                       </button>
                     </>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={handleBuy}
-                      disabled={notEnoughUsdc || needsApproval || isBuyPending || isBuyConfirming}
-                      className="w-full cursor-pointer rounded-xl bg-primary-strong px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      {isBuyPending
-                        ? "Check Wallet to Buy..."
-                        : isBuyConfirming
-                        ? "Purchasing License on Arc..."
-                        : needsApproval
-                        ? `Step 2: Buy License ($${priceUsd} USDC)`
-                        : `Buy License ($${priceUsd} USDC)`}
-                    </button>
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        type="button"
+                        onClick={handleBuyClick}
+                        disabled={notEnoughUsdc || busy}
+                        aria-live="polite"
+                        className="w-full cursor-pointer rounded-xl bg-primary-strong px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {buyLabel}
+                      </button>
+                      {!busy && (
+                        <p className="text-center text-xs text-muted">
+                          {needsApproval
+                            ? "Two wallet confirmations: allow USDC, then buy."
+                            : "One wallet confirmation."}
+                        </p>
+                      )}
+                    </div>
                   )}
 
                   {/* Transaction sent, waiting for the receipt */}
