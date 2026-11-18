@@ -3,7 +3,7 @@ import { formatUnits } from "viem";
 import { USDC_DECIMALS } from "@/lib/arc";
 
 export interface Payout {
-  label: string; // "Host", "Guest", "Snippet"
+  label: string; // "Paid to SpaceLofi", "Contributor", "Snippet"
   units: bigint; // USDC units (6 decimals) from the LicenseIssued event
 }
 
@@ -55,7 +55,7 @@ export function PurchaseReceipt({
       {/* The payment splitting into one line per payee */}
       <ul className="flex flex-col gap-2.5" aria-label="Payment split">
         {payouts.map((p, i) => (
-          <li key={p.label} className="grid grid-cols-[4.5rem_1fr_auto] items-center gap-3 text-xs">
+          <li key={p.label} className="grid grid-cols-[minmax(4.5rem,auto)_1fr_auto] items-center gap-3 text-xs">
             <span className="font-medium text-muted">{p.label}</span>
             <span className="relative h-1.5 overflow-hidden rounded-full bg-line">
               <span

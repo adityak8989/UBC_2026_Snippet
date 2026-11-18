@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { LicensesFeed } from "@/components/LicensesFeed";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
+import { CreatorBadge } from "@/components/CreatorBadge";
 import { QuoteSearch } from "@/components/QuoteSearch";
 import { REPO_URL } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { LISTED_CLIPS } from "@/lib/clips";
+import { getCreator } from "@/lib/creators";
 import { SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { EXPLORER_URL } from "@/lib/licenses";
 
@@ -48,6 +50,7 @@ export default function Home() {
               const rhPercent = clip.split.rightsHolderBps / 100;
               const contribPercent = clip.split.contributorBps / 100;
               const platformPercent = clip.split.platformBps / 100;
+              const creator = getCreator(clip);
 
               return (
                 <div
@@ -77,8 +80,12 @@ export default function Home() {
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between gap-2 text-xs font-medium text-muted">
                         <span className="text-primary-text">{clip.show}</span>
-                        {clip.contributorName && (
-                          <span className="rounded bg-surface-2 px-2 py-0.5">{clip.contributorName}</span>
+                        {creator ? (
+                          <CreatorBadge creator={creator} />
+                        ) : (
+                          clip.contributorName && (
+                            <span className="rounded bg-surface-2 px-2 py-0.5">{clip.contributorName}</span>
+                          )
                         )}
                       </div>
 
@@ -97,8 +104,8 @@ export default function Home() {
                         <span>Royalty Split:</span>
                         <span className="font-medium text-ink">
                           {contribPercent > 0
-                            ? `${rhPercent}% Creator · ${contribPercent}% Contributor · ${platformPercent}% Snippet`
-                            : `${rhPercent}% Creator · ${platformPercent}% Snippet`}
+                            ? `${rhPercent}% ${creator?.name ?? "Creator"} · ${contribPercent}% Contributor · ${platformPercent}% Snippet`
+                            : `${rhPercent}% ${creator?.name ?? "Creator"} · ${platformPercent}% Snippet`}
                         </span>
                       </div>
 

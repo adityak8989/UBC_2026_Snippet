@@ -12,6 +12,7 @@ import { SnippetLicensesAbi } from "@/lib/abi";
 import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS, USDC_DECIMALS } from "@/lib/arc";
 import { getTranscript } from "@/lib/captions";
 import { DEMO_CLIPS } from "@/lib/clips";
+import { creatorPayoutLabel, getCreator } from "@/lib/creators";
 import { fetchLicenseEvent, streamsConfigured } from "@/lib/licenseEvents";
 import { EXPLORER_URL, USE_TYPE_NAMES, findLicenseTx } from "@/lib/licenses";
 
@@ -122,7 +123,7 @@ function Certificate() {
     timeZone: "UTC",
   });
   const payouts = [
-    { label: "Creator", units: view.rhAmount },
+    { label: creatorPayoutLabel(clip), units: view.rhAmount },
     ...(view.contribAmount > BigInt(0) ? [{ label: "Contributor", units: view.contribAmount }] : []),
     { label: "Snippet", units: view.platformAmount },
   ];
@@ -170,7 +171,12 @@ function Certificate() {
           <h1 className="mt-1 font-display text-xl font-bold leading-snug sm:text-2xl">
             {clip?.title ?? "Unknown clip"}
           </h1>
-          {clip && <p className="mt-1 text-sm text-muted">{clip.show}</p>}
+          {clip && (
+            <p className="mt-1 text-sm text-muted">
+              {clip.show}
+              {getCreator(clip) && <> · by {getCreator(clip)!.name}</>}
+            </p>
+          )}
         </div>
 
         {licensedWords && (

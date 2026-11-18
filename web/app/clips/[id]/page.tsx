@@ -18,6 +18,8 @@ import { PurchaseReceipt } from "@/components/PurchaseReceipt";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SyncedCaptions } from "@/components/SyncedCaptions";
+import { CreatorBadge } from "@/components/CreatorBadge";
+import { creatorPayoutLabel, getCreator } from "@/lib/creators";
 import { getSpokenTranscript } from "@/lib/captions";
 import { getClipById } from "@/lib/clips";
 import { USDC_ADDRESS, USDC_DECIMALS, SNIPPET_LICENSES_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
@@ -72,6 +74,7 @@ function ClipDetailContent() {
   const params = useParams<{ id: string }>();
   const clip = getClipById(params.id);
   const transcript = clip ? getSpokenTranscript(clip.id) : undefined;
+  const creator = getCreator(clip);
 
   // "Search what's said" links here with ?t=<start>&end=<end>: cue the video up just before the quote.
   const searchParams = useSearchParams();
@@ -359,7 +362,7 @@ function ClipDetailContent() {
                 <span className="font-medium text-primary-text">{clip.show}</span>
                 <span>•</span>
                 <span>{clip.duration}</span>
-                {clip.contributorName && (
+                {clip.contributorName && !creator && (
                   <>
                     <span>•</span>
                     <span className="rounded bg-surface-2 px-2 py-0.5 font-medium">{clip.contributorName}</span>
@@ -369,6 +372,11 @@ function ClipDetailContent() {
 
               <h1 className="font-display text-2xl font-bold sm:text-3xl">{clip.title}</h1>
               <p className="text-muted">{clip.description}</p>
+              {creator && (
+                <div className="mt-1">
+                  <CreatorBadge creator={creator} withBio />
+                </div>
+              )}
             </div>
           </div>
 
@@ -450,7 +458,9 @@ function ClipDetailContent() {
               </div>
               <div className="flex flex-col gap-1.5 text-xs text-muted">
                 <div className="flex items-center justify-between">
-                  <span>Creator / Rights Holder ({clip.split.rightsHolderBps / 100}%):</span>
+                  <span>
+                    {creator ? `Paid to ${creator.name}` : "Creator / Rights Holder"} ({clip.split.rightsHolderBps / 100}%):
+                  </span>
                   <span className="font-medium text-ink">${rhAmount.toFixed(2)} USDC</span>
                 </div>
                 {clip.split.contributorBps > 0 && (
@@ -525,7 +535,7 @@ function ClipDetailContent() {
                           priceUnits={issued.price}
                           useTypeLabel={Object.values(USE_TYPE_LABEL)[issued.useType] ?? ""}
                           payouts={[
-                            { label: "Creator", units: issued.rhAmount },
+                            { label: creatorPayoutLabel(clip), units: issued.rhAmount },
                             ...(issued.contribAmount > BigInt(0)
                               ? [{ label: "Contributor", units: issued.contribAmount }]
                               : []),

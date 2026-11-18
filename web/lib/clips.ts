@@ -17,6 +17,7 @@ export interface Clip {
   id: string;
   clipIdBytes32: `0x${string}`;
   title: string;
+  creator?: string; // key into CREATORS (lib/creators.ts); the creator receives the rights-holder share
   description: string;
   show: string;
   speaker: string;
