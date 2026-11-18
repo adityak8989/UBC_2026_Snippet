@@ -4,10 +4,11 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient, useReadContracts } from "wagmi";
-import { formatUnits } from "viem";
+import { Details } from "@/components/Details";
 import { SiteHeader } from "@/components/SiteHeader";
+import { formatUsdUnits } from "@/lib/money";
 import { SnippetLicensesAbi } from "@/lib/abi";
-import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS, USDC_DECIMALS } from "@/lib/arc";
+import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { DEMO_CLIPS } from "@/lib/clips";
 import { EXPLORER_URL, USE_TYPE_NAMES, fetchClipLicenses } from "@/lib/licenses";
 
@@ -22,8 +23,6 @@ async function sha256(file: File): Promise<`0x${string}`> {
   const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
   return `0x${Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("")}`;
 }
-
-const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 
 export default function CheckPage() {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
@@ -75,8 +74,8 @@ export default function CheckPage() {
         <div className="flex flex-col gap-2 text-center">
           <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Check License</h1>
           <p className="text-muted">
-            Drop a video file to see if it is a licensed clip on Snippet. Your browser fingerprints the file
-            (SHA256) and compares it with the fingerprints recorded on Arc. Nothing is uploaded.
+            Drop a video file to see if it is a licensed clip on Snippet. Your browser fingerprints the file and
+            compares it with the fingerprints recorded on Arc. Nothing is uploaded.
           </p>
           <p className="text-sm font-medium text-ink">
             File match verified against Arc. License history indexed live by QuickNode Streams.
@@ -121,7 +120,7 @@ export default function CheckPage() {
           {status.kind === "hashing" && (
             <div className="flex animate-pulse flex-col gap-2 rounded-2xl border border-line bg-surface p-5">
               <p className="font-semibold">Fingerprinting {status.name}…</p>
-              <p className="text-xs text-muted">Computing SHA256 locally in your browser.</p>
+              <p className="text-xs text-muted">This happens in your browser; the file stays on your device.</p>
             </div>
           )}
 
@@ -164,18 +163,6 @@ export default function CheckPage() {
               </div>
 
               <div>
-                <p className="text-xs uppercase tracking-wider text-muted">Rights holder (on Arc)</p>
-                <a
-                  href={`${EXPLORER_URL}/address/${match.record.rightsHolder}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="break-all font-mono text-xs text-ink underline hover:text-primary-text"
-                >
-                  {match.record.rightsHolder}
-                </a>
-              </div>
-
-              <div>
                 <p className="mb-2 flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-muted">
                   <span>Licenses sold{sold ? ` (${sold.length})` : ""}</span>
                   {soldResult && (
@@ -198,10 +185,7 @@ export default function CheckPage() {
                         >
                           <span className="font-semibold">License #{l.licenseId.toString()}</span>
                           <span className="text-muted">{USE_TYPE_NAMES[l.useType] ?? "Unknown"}</span>
-                          <span className="hidden font-mono text-xs text-muted sm:inline">{short(l.buyer)}</span>
-                          <span className="font-mono text-xs">
-                            ${Number(formatUnits(l.price, USDC_DECIMALS)).toFixed(2)}
-                          </span>
+                          <span className="font-mono text-xs">{formatUsdUnits(l.price)}</span>
                           <span aria-hidden="true" className="text-primary-text">
                             →
                           </span>
@@ -227,9 +211,45 @@ export default function CheckPage() {
           )}
 
           {status.kind === "done" && (
-            <p className="break-all text-center font-mono text-[11px] text-muted">
-              {status.name} · {(status.size / 1_000_000).toFixed(1)} MB · SHA256 {status.hash}
-            </p>
+            <Details className="text-center">
+              <div className="flex flex-col gap-3 text-left">
+                <div>
+                  <p className="text-muted">Your file</p>
+                  <p className="break-all font-mono text-ink">
+                    {status.name} · {(status.size / 1_000_000).toFixed(1)} MB
+                  </p>
+                </div>
+                <div>
+                  <p className="text-muted">Fingerprint (SHA256)</p>
+                  <p className="break-all font-mono text-ink">{status.hash}</p>
+                </div>
+                {match && (
+                  <div>
+                    <p className="text-muted">Rights holder wallet (on Arc)</p>
+                    <a
+                      href={`${EXPLORER_URL}/address/${match.record.rightsHolder}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="break-all font-mono text-ink underline hover:text-primary-text"
+                    >
+                      {match.record.rightsHolder} ↗
+                    </a>
+                  </div>
+                )}
+                {sold && sold.length > 0 && (
+                  <div>
+                    <p className="text-muted">Licensee wallets</p>
+                    <ul className="font-mono text-ink">
+                      {sold.map((l) => (
+                        <li key={l.licenseId.toString()} className="break-all">
+                          #{l.licenseId.toString()} {l.buyer}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </Details>
           )}
 
           {(status.kind === "done" || status.kind === "error") && (

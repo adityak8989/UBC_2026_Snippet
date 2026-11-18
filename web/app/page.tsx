@@ -174,7 +174,7 @@ export default function Home() {
           <div className="mt-2 flex flex-col gap-2 text-muted">
             <p>
               Snippet is a student project built for the UBC 2026 hackathon. It runs only on Arc testnet and uses
-              testnet USDC, which has no real value; you can get some free at{" "}
+              test dollars (testnet USDC), which have no real value; you can get some free at{" "}
               <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" className="text-primary-text underline">
                 faucet.circle.com
               </a>

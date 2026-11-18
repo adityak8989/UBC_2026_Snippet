@@ -4,12 +4,12 @@ import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useQuery } from "@tanstack/react-query";
 import { useAccount, usePublicClient } from "wagmi";
-import { formatUnits } from "viem";
 import { SiteHeader } from "@/components/SiteHeader";
-import { ARC_TESTNET_CHAIN_ID, USDC_DECIMALS } from "@/lib/arc";
+import { ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
 import { DEMO_CLIPS } from "@/lib/clips";
 import { getCreator } from "@/lib/creators";
 import { USE_TYPE_NAMES, fetchBuyerLicenses } from "@/lib/licenses";
+import { formatUsdUnits } from "@/lib/money";
 import { useIsClient } from "@/lib/useIsClient";
 
 // "My licenses": every license the connected wallet owns, newest first (license_events from QuickNode
@@ -20,7 +20,6 @@ import { useIsClient } from "@/lib/useIsClient";
 // serve a short lived signed URL only after the wallet signs a message proving it owns a license
 // (docs/PLAN.md section 5, "Download gate").
 
-const usdc = (units: bigint) => Number(formatUnits(units, USDC_DECIMALS)).toFixed(2);
 
 export default function MyLicensesPage() {
   return (
@@ -134,7 +133,7 @@ function LicenseList() {
                     <span className="rounded-md bg-primary/15 px-2 py-0.5 font-semibold text-primary-text">
                       {USE_TYPE_NAMES[l.useType] ?? "Unknown"}
                     </span>
-                    <span className="font-semibold">${usdc(l.price)} USDC</span>
+                    <span className="font-semibold">{formatUsdUnits(l.price)}</span>
                     <span className="text-muted">{date}</span>
                   </div>
                 </div>

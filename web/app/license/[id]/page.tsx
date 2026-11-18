@@ -5,11 +5,13 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient, useReadContract } from "wagmi";
-import { formatUnits, zeroAddress } from "viem";
+import { zeroAddress } from "viem";
 import { LogoMark } from "@/components/Logo";
+import { Details } from "@/components/Details";
 import { SiteHeader } from "@/components/SiteHeader";
+import { formatUsdUnits } from "@/lib/money";
 import { SnippetLicensesAbi } from "@/lib/abi";
-import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS, USDC_DECIMALS } from "@/lib/arc";
+import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { getTranscript } from "@/lib/captions";
 import { DEMO_CLIPS } from "@/lib/clips";
 import { creatorPayoutLabel, getCreator } from "@/lib/creators";
@@ -29,7 +31,6 @@ export default function LicensePage() {
   );
 }
 
-const usdc = (units: bigint) => Number(formatUnits(units, USDC_DECIMALS)).toFixed(2);
 
 function Certificate() {
   const params = useParams<{ id: string }>();
@@ -190,10 +191,8 @@ function Certificate() {
               <p className="mt-2 text-sm text-muted">No spoken words in this clip.</p>
             )}
             <p className="mt-3 text-[11px] text-muted">
-              Transcribed from the master by ElevenLabs Speech to Text ({licensedWords.transcript.model}). Transcript
-              hash (SHA256):
+              Transcribed from the master by ElevenLabs Speech to Text.
             </p>
-            <code className="mt-0.5 block break-all font-mono text-xs">{licensedWords.sha256}</code>
           </figure>
         )}
 
@@ -204,10 +203,7 @@ function Certificate() {
             </span>
           </Field>
           <Field label="Price paid">
-            <span className="font-display text-lg font-bold">${usdc(view.price)} USDC</span>
-          </Field>
-          <Field label="Licensee" wide>
-            <code className="break-all font-mono text-xs">{view.buyer}</code>
+            <span className="font-display text-lg font-bold">{formatUsdUnits(view.price)}</span>
           </Field>
           <Field label="Issued">{issuedAt} UTC</Field>
           <Field label="Terms">Nonexclusive, recorded permanently on Arc testnet</Field>
@@ -219,14 +215,18 @@ function Certificate() {
             {payouts.map((p) => (
               <li key={p.label} className="flex justify-between gap-4">
                 <span className="text-muted">{p.label}</span>
-                <span className="font-mono font-semibold">${usdc(p.units)}</span>
+                <span className="font-mono font-semibold">{formatUsdUnits(p.units)}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <dl className="mt-6 flex flex-col gap-4">
-          <Field label="Master file hash (SHA256)">
+        <Details className="mt-6">
+        <dl className="flex flex-col gap-4">
+          <Field label="Licensee wallet">
+            <code className="break-all font-mono text-xs">{view.buyer}</code>
+          </Field>
+          <Field label="Master file fingerprint (SHA256)">
             <code className="break-all font-mono text-xs">{view.fileHash}</code>
           </Field>
           <Field label="Transaction">
@@ -252,13 +252,18 @@ function Certificate() {
               </a>
             )}
           </Field>
+          {licensedWords && (
+            <Field label="Transcript fingerprint (SHA256)">
+              <code className="break-all font-mono text-xs">{licensedWords.sha256}</code>
+            </Field>
+          )}
         </dl>
-
-        <footer className="mt-6 border-t border-dashed border-line pt-4 text-[11px] leading-relaxed text-muted">
+        <p className="mt-4 text-[11px] leading-relaxed text-muted">
           {event ? "Indexed by QuickNode Streams and checked against" : "Read live from"} the SnippetLicenses
           contract <code className="break-all font-mono">{SNIPPET_LICENSES_ADDRESS}</code> on Arc testnet (chain
           5042002).
-        </footer>
+        </p>
+        </Details>
       </article>
 
       <ShareActions />

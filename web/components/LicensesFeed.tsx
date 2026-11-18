@@ -4,12 +4,13 @@ import { useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
-import { formatUnits, type PublicClient } from "viem";
+import { type PublicClient } from "viem";
 import { SnippetLicensesAbi } from "@/lib/abi";
-import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS, USDC_DECIMALS } from "@/lib/arc";
+import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { DEMO_CLIPS } from "@/lib/clips";
 import { fetchLicenseEvents, streamsConfigured, subscribeLicenseEvents } from "@/lib/licenseEvents";
 import { USE_TYPE_NAMES } from "@/lib/licenses";
+import { formatUsdUnits } from "@/lib/money";
 import { useIsClient } from "@/lib/useIsClient";
 
 interface FeedItem {
@@ -73,7 +74,6 @@ async function loadFeed(client: PublicClient | undefined): Promise<Feed> {
   };
 }
 
-const usdc = (units: bigint) => Number(formatUnits(units, USDC_DECIMALS)).toFixed(2);
 
 const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 function timeAgo(date: Date, now: number): string {
@@ -149,7 +149,7 @@ export function LicensesFeed() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
         <Stat label="Licenses sold" value={data ? items.length.toString() : undefined} />
-        <Stat label="USDC paid to creators" value={data ? `$${usdc(totalToCreators)}` : undefined} />
+        <Stat label="Paid to creators" value={data ? formatUsdUnits(totalToCreators) : undefined} />
       </div>
 
       {/* Feed */}
@@ -189,11 +189,11 @@ export function LicensesFeed() {
                     </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-                    <span className="font-mono font-semibold text-ink">${usdc(item.price)}</span>
+                    <span className="font-mono font-semibold text-ink">{formatUsdUnits(item.price)}</span>
                     <span className="font-mono">
-                      {usdc(item.rhAmount)} creator
-                      {item.contribAmount > BigInt(0) ? ` · ${usdc(item.contribAmount)} contributor` : ""} ·{" "}
-                      {usdc(item.platformAmount)} Snippet
+                      {formatUsdUnits(item.rhAmount)} creator
+                      {item.contribAmount > BigInt(0) ? ` · ${formatUsdUnits(item.contribAmount)} contributor` : ""} ·{" "}
+                      {formatUsdUnits(item.platformAmount)} Snippet
                     </span>
                     <span className={fresh ? "font-semibold text-success" : ""}>{now > 0 ? timeAgo(item.time, now) : ""}</span>
                     <span aria-hidden="true" className="text-primary-text">

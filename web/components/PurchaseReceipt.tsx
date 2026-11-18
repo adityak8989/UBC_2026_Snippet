@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { formatUnits } from "viem";
 import { USDC_DECIMALS } from "@/lib/arc";
+import { formatUsdUnits } from "@/lib/money";
+import { Details } from "./Details";
 
 export interface Payout {
   label: string; // "Paid to SpaceLofi", "Contributor", "Snippet"
@@ -41,7 +43,7 @@ export function PurchaseReceipt({
         <div className="min-w-0">
           <p className="font-display text-base font-bold">License #{licenseId.toString()} purchased</p>
           <p className="text-xs text-muted">
-            You paid <span className="font-semibold text-ink">${usdc(priceUnits)} USDC</span> for a {useTypeLabel} license
+            You paid <span className="font-semibold text-ink">{formatUsdUnits(priceUnits)}</span> for a {useTypeLabel} license
           </p>
         </div>
       </div>
@@ -91,15 +93,21 @@ export function PurchaseReceipt({
         >
           ⬇ Download Master Video (.mp4)
         </a>
-        <a
-          href={`https://testnet.arcscan.app/tx/${txHash}`}
-          target="_blank"
-          rel="noreferrer"
-          className="text-center text-xs text-muted underline hover:text-ink"
-        >
-          View transaction on ArcScan ↗
-        </a>
       </div>
+
+      <Details>
+        <div>
+          <p className="text-muted">Transaction</p>
+          <a
+            href={`https://testnet.arcscan.app/tx/${txHash}`}
+            target="_blank"
+            rel="noreferrer"
+            className="break-all font-mono text-ink underline hover:text-primary-text"
+          >
+            {txHash} ↗
+          </a>
+        </div>
+      </Details>
     </div>
   );
 }

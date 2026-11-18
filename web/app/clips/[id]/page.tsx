@@ -15,6 +15,7 @@ import { friendlyTxError } from "@/lib/errors";
 import { useIsClient } from "@/lib/useIsClient";
 import { parseEventLogs, parseUnits } from "viem";
 import { PurchaseReceipt } from "@/components/PurchaseReceipt";
+import { formatUsd } from "@/lib/money";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SyncedCaptions } from "@/components/SyncedCaptions";
@@ -124,7 +125,7 @@ function ClipDetailContent() {
   });
 
   const formattedBalance =
-    usdcBalance !== undefined ? (Number(usdcBalance) / 10 ** USDC_DECIMALS).toFixed(2) : undefined;
+    usdcBalance !== undefined ? formatUsd(Number(usdcBalance) / 10 ** USDC_DECIMALS) : undefined;
 
   // Read USDC allowance
   const isContractReady =
@@ -305,14 +306,14 @@ function ClipDetailContent() {
   const buyLabel = isApprovePending
     ? "Confirm 1 of 2 in your wallet"
     : isApproveConfirming
-      ? "Approving USDC on Arc (1 of 2)…"
+      ? "Approving the payment (1 of 2)…"
       : isBuyPending || awaitingAutoBuy
         ? twoStep
           ? "Confirm 2 of 2 in your wallet"
           : "Confirm in your wallet"
         : isBuyConfirming
-          ? "Purchasing license on Arc…"
-          : `Buy license · $${priceUsd} USDC`;
+          ? "Buying your license…"
+          : `Buy license · ${formatUsd(priceUsd)}`;
 
   // Back to a fresh "Buy license". The purchase spent the allowance, so read the fresh value before
   // clearing the old transactions; otherwise Buy could briefly show as ready.
@@ -386,14 +387,14 @@ function ClipDetailContent() {
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h2 className="font-display text-lg font-bold">Select License Tier</h2>
-                <p className="text-xs text-muted">Nonexclusive usage rights recorded permanently on Arc testnet.</p>
+                <p className="text-xs text-muted">Nonexclusive rights, recorded permanently on Arc.</p>
               </div>
               {isConnected && formattedBalance !== undefined && (
                 <div className="shrink-0 rounded-lg border border-success/40 bg-success/10 px-2.5 py-1 text-right">
                   <span className="block text-[10px] font-semibold uppercase tracking-wider text-success">
-                    Wallet Balance
+                    Balance
                   </span>
-                  <span className="font-mono text-sm font-bold text-success">${formattedBalance} USDC</span>
+                  <span className="font-mono text-sm font-bold text-success">{formattedBalance}</span>
                 </div>
               )}
             </div>
@@ -440,7 +441,7 @@ function ClipDetailContent() {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-semibold">{tier.name}</span>
                       {forSale ? (
-                        <span className="font-display text-base font-bold text-primary-text">${tier.price} USDC</span>
+                        <span className="font-display text-base font-bold text-primary-text">{formatUsd(tier.price)}</span>
                       ) : (
                         <span className="text-xs font-semibold uppercase tracking-wider text-muted">Not available</span>
                       )}
@@ -463,25 +464,25 @@ function ClipDetailContent() {
             {/* Split Breakdown Visualizer */}
             <div className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface-2 p-4">
               <div className="flex items-center justify-between text-xs font-semibold">
-                <span>Direct Split Breakdown</span>
-                <span className="text-muted">Atomic in 1 Tx</span>
+                <span>Who gets paid</span>
+                <span className="text-muted">All in one payment</span>
               </div>
               <div className="flex flex-col gap-1.5 text-xs text-muted">
                 <div className="flex items-center justify-between">
                   <span>
                     {creator ? `Paid to ${creator.name}` : "Creator / Rights Holder"} ({clip.split.rightsHolderBps / 100}%):
                   </span>
-                  <span className="font-medium text-ink">${rhAmount.toFixed(2)} USDC</span>
+                  <span className="font-medium text-ink">{formatUsd(rhAmount)}</span>
                 </div>
                 {clip.split.contributorBps > 0 && (
                   <div className="flex items-center justify-between">
                     <span>Contributor ({clip.split.contributorBps / 100}%):</span>
-                    <span className="font-medium text-ink">${contribAmount.toFixed(2)} USDC</span>
+                    <span className="font-medium text-ink">{formatUsd(contribAmount)}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between">
                   <span>Snippet Platform ({clip.split.platformBps / 100}%):</span>
-                  <span className="font-medium text-ink">${platformAmount.toFixed(2)} USDC</span>
+                  <span className="font-medium text-ink">{formatUsd(platformAmount)}</span>
                 </div>
               </div>
             </div>
@@ -494,7 +495,7 @@ function ClipDetailContent() {
                 </div>
               ) : !isConnected ? (
                 <div className="flex flex-col items-center gap-2 rounded-xl bg-surface-2 p-3">
-                  <span className="text-xs text-muted">Connect your wallet to purchase with testnet USDC</span>
+                  <span className="text-xs text-muted">Connect your wallet to buy with free test dollars</span>
                   <ConnectButton />
                 </div>
               ) : !isContractReady ? (
@@ -521,9 +522,9 @@ function ClipDetailContent() {
                 <div className="flex flex-col gap-3">
                   {notEnoughUsdc && (
                     <div className="flex flex-col gap-1 rounded-xl border border-primary/40 bg-primary/10 p-4 text-sm" role="alert">
-                      <p className="font-semibold">Not enough USDC for this license.</p>
+                      <p className="font-semibold">Not enough funds for this license.</p>
                       <p className="text-xs text-muted">
-                        You have ${formattedBalance} USDC and this license costs ${priceUsd} USDC, plus a small network fee.
+                        You have {formattedBalance} and this license costs {formatUsd(priceUsd)}, plus a fee under 1¢.
                       </p>
                       <a
                         href="https://faucet.circle.com"
@@ -531,7 +532,7 @@ function ClipDetailContent() {
                         rel="noreferrer"
                         className="mt-1 w-fit text-xs font-semibold text-primary-text underline"
                       >
-                        Get free testnet USDC at faucet.circle.com ↗
+                        Get free test dollars at faucet.circle.com ↗
                       </a>
                     </div>
                   )}
@@ -579,8 +580,8 @@ function ClipDetailContent() {
                       {!busy && (
                         <p className="text-center text-xs text-muted">
                           {needsApproval
-                            ? "Two wallet confirmations: allow USDC, then buy."
-                            : "One wallet confirmation."}
+                            ? "Two wallet confirmations: allow the payment, then buy. Fees: about 1¢."
+                            : "One wallet confirmation. Fee: under 1¢."}
                         </p>
                       )}
                     </div>
@@ -588,15 +589,15 @@ function ClipDetailContent() {
 
                   {/* Transaction sent, waiting for the receipt */}
                   {buyTxHash && !isBuySuccess && (
-                    <div className="flex flex-col gap-1 rounded-xl border border-line bg-surface-2 p-3 text-xs text-ink">
-                      <span className="font-semibold">Transaction sent, waiting for Arc to confirm:</span>
+                    <div className="flex items-center justify-between gap-2 rounded-xl border border-line bg-surface-2 p-3 text-xs text-ink">
+                      <span className="font-semibold">Payment sent, confirming on Arc…</span>
                       <a
                         href={`https://testnet.arcscan.app/tx/${buyTxHash}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="break-all font-mono text-muted underline hover:text-ink"
+                        className="shrink-0 text-muted underline hover:text-ink"
                       >
-                        {buyTxHash}
+                        Track it ↗
                       </a>
                     </div>
                   )}
