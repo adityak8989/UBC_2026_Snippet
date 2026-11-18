@@ -1,7 +1,7 @@
 import { parseEventLogs, toHex, type PublicClient } from "viem";
 import { SnippetLicensesAbi } from "./abi";
 import { SNIPPET_LICENSES_ADDRESS } from "./arc";
-import { fetchLicenseEventsForClip, streamsConfigured } from "./licenseEvents";
+import { fetchLicenseEventsForBuyer, fetchLicenseEventsForClip, streamsConfigured } from "./licenseEvents";
 
 export const EXPLORER_URL = "https://testnet.arcscan.app";
 // Blockscout API behind testnet.arcscan.app (allows cross origin requests).
@@ -123,10 +123,53 @@ export async function fetchClipLicenses(
   return { source: "chain", licenses: await fetchClipLicensesFromChain(client, clipId) };
 }
 
+export interface OwnedLicense extends SoldLicense {
+  clipId: `0x${string}`;
+  fileHash: `0x${string}`;
+}
+
+// Every license a wallet owns, newest first: license_events (QuickNode Streams) first, the contract as
+// fallback when Supabase isn't configured or fails.
+export async function fetchBuyerLicenses(
+  client: PublicClient,
+  buyer: `0x${string}`,
+): Promise<{ source: "streams" | "chain"; licenses: OwnedLicense[] }> {
+  if (streamsConfigured) {
+    try {
+      const events = await fetchLicenseEventsForBuyer(buyer);
+      return {
+        source: "streams",
+        licenses: events.map((e) => ({
+          licenseId: e.licenseId,
+          clipId: e.clipId,
+          fileHash: e.fileHash,
+          buyer: e.buyer,
+          useType: e.useType,
+          price: e.price,
+          timestamp: BigInt(Math.floor(e.blockTimestamp.getTime() / 1000)),
+        })),
+      };
+    } catch (err) {
+      console.warn("My licenses: Supabase unavailable, reading the contract instead", err);
+    }
+  }
+  const all = await fetchAllLicensesFromChain(client);
+  return {
+    source: "chain",
+    licenses: all.filter((l) => l.buyer.toLowerCase() === buyer.toLowerCase()).reverse(),
+  };
+}
+
 // Contract fallback: licenseCount, then getLicense for each id. Fine at demo scale.
 const MAX_LICENSES_SCANNED = 500;
 
 async function fetchClipLicensesFromChain(client: PublicClient, clipId: `0x${string}`): Promise<SoldLicense[]> {
+  const all = await fetchAllLicensesFromChain(client);
+  return all.filter((l) => l.clipId.toLowerCase() === clipId.toLowerCase());
+}
+
+// Oldest first.
+async function fetchAllLicensesFromChain(client: PublicClient): Promise<OwnedLicense[]> {
   const count = await client.readContract({
     address: SNIPPET_LICENSES_ADDRESS,
     abi: SnippetLicensesAbi,
@@ -135,7 +178,7 @@ async function fetchClipLicensesFromChain(client: PublicClient, clipId: `0x${str
   const total = Number(count < BigInt(MAX_LICENSES_SCANNED) ? count : BigInt(MAX_LICENSES_SCANNED));
   const ids = Array.from({ length: total }, (_, i) => BigInt(i + 1));
 
-  const sold: SoldLicense[] = [];
+  const all: OwnedLicense[] = [];
   for (let i = 0; i < ids.length; i += 20) {
     const batch = await Promise.all(
       ids.slice(i, i + 20).map((id) =>
@@ -148,10 +191,16 @@ async function fetchClipLicensesFromChain(client: PublicClient, clipId: `0x${str
       ),
     );
     batch.forEach((l, j) => {
-      if (l.clipId.toLowerCase() === clipId.toLowerCase()) {
-        sold.push({ licenseId: ids[i + j], buyer: l.buyer, useType: l.useType, price: l.price, timestamp: l.timestamp });
-      }
+      all.push({
+        licenseId: ids[i + j],
+        clipId: l.clipId,
+        fileHash: l.fileHash,
+        buyer: l.buyer,
+        useType: l.useType,
+        price: l.price,
+        timestamp: l.timestamp,
+      });
     });
   }
-  return sold;
+  return all;
 }

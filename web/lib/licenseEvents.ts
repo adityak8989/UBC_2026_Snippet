@@ -89,6 +89,17 @@ export async function fetchLicenseEventsForClip(clipId: string): Promise<License
   return (data as Row[]).map(fromRow);
 }
 
+// Every license one wallet bought, newest first. The webhook stores buyers lowercased.
+export async function fetchLicenseEventsForBuyer(buyer: string): Promise<LicenseEvent[]> {
+  const { data, error } = await client()
+    .from("license_events")
+    .select(COLUMNS)
+    .eq("buyer", buyer.toLowerCase())
+    .order("license_id", { ascending: false });
+  if (error) throw error;
+  return (data as Row[]).map(fromRow);
+}
+
 // Calls onChange whenever a license_events row is inserted or updated (Supabase Realtime).
 // Returns an unsubscribe function. No-op without Supabase.
 export function subscribeLicenseEvents(onChange: () => void): () => void {

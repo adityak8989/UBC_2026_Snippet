@@ -6,8 +6,9 @@ import { Logo } from "./Logo";
 
 // `active` highlights the current page in the nav. (A prop rather than usePathname, which would
 // make every page using the header dynamic under Cache Components.)
-export function SiteHeader({ active }: { active?: "check" } = {}) {
+export function SiteHeader({ active }: { active?: "check" | "licenses" } = {}) {
   const onCheck = active === "check";
+  const onLicenses = active === "licenses";
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur-md">
@@ -28,8 +29,17 @@ export function SiteHeader({ active }: { active?: "check" } = {}) {
               onCheck ? "text-primary-text" : "text-muted hover:text-ink"
             }`}
           >
-            <span className="sm:hidden">Check License</span>
+            <span className="sm:hidden">Check</span>
             <span className="hidden sm:inline">Check License</span>
+          </Link>
+          <Link
+            href="/licenses"
+            aria-current={onLicenses ? "page" : undefined}
+            className={`rounded-lg px-1 text-sm font-semibold transition-colors ${
+              onLicenses ? "text-primary-text" : "text-muted hover:text-ink"
+            }`}
+          >
+            My licenses
           </Link>
           <ConnectButton showBalance={false} chainStatus="icon" accountStatus="address" />
         </nav>
