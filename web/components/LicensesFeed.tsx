@@ -105,7 +105,7 @@ async function loadFeed(client: PublicClient | undefined): Promise<Feed> {
 }
 
 
-const rtf = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+const rtf = new Intl.RelativeTimeFormat("en-US", { numeric: "auto" }); // pinned: never the browser language
 function timeAgo(date: Date, now: number): string {
   const s = Math.round((date.getTime() - now) / 1000);
   if (Math.abs(s) < 45) return "just now";

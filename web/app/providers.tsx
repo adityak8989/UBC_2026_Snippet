@@ -22,7 +22,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={rainbowTheme}>{children}</RainbowKitProvider>
+        {/* English always: RainbowKit otherwise follows the browser language ("Conectar la billetera"). */}
+        <RainbowKitProvider theme={rainbowTheme} locale="en-US">
+          {children}
+        </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
