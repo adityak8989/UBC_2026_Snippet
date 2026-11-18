@@ -28,8 +28,8 @@ export function SiteHeader({ active }: { active?: "check" } = {}) {
               onCheck ? "text-primary" : "text-muted hover:text-ink"
             }`}
           >
-            <span className="sm:hidden">Check</span>
-            <span className="hidden sm:inline">Check a take</span>
+            <span className="sm:hidden">Check License</span>
+            <span className="hidden sm:inline">Check License</span>
           </Link>
           <ConnectButton showBalance={false} chainStatus="icon" accountStatus="address" />
         </nav>

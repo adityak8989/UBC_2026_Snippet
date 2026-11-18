@@ -32,7 +32,7 @@ Update this list in the same commit that finishes each item.
 - [ ] Supabase tables + private storage bucket, 3 clip files uploaded with sha256 hashes
 - [ ] QuickNode Stream → `/api/streams` webhook → `license_events`
 - [ ] Live "licenses sold" feed on `/`
-- [x] `/check` "Is this take cleared?" page (hashes in the browser, matches the on-chain fileHash; licenses sold are read from QuickNode Streams' `license_events` first, with the contract as fallback)
+- [x] `/check` "Check License" page (hashes in the browser, matches the on-chain fileHash; licenses sold are read from QuickNode Streams' `license_events` first, with the contract as fallback)
 - [x] License certificate page `/license/[id]` and purchase receipt
 - [ ] `/licenses` page with downloads
 - [ ] Feature freeze + full demo run on the deployed site
@@ -59,7 +59,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for the branch and PR workflow.
 | Revenue split paid to rights holder / contributor / platform in the same tx | Withdraw flows, disputes UI |
 | **No login: the wallet is the account** | Email accounts, profiles |
 | Platform hosts the clip files (off-chain); download only if the connected wallet owns a license | Hosting anyone else's media |
-| Live "licenses sold" feed + "Is this take cleared?" checker via **QuickNode Streams** | Full indexer/reconciler |
+| Live "licenses sold" feed + "Check License" page via **QuickNode Streams** | Full indexer/reconciler |
 
 We hold the rights to all demo content. The platform operator lists clips itself and acts as the rights holder. The contributor role is a teammate credited on specific clips.
 
@@ -156,7 +156,7 @@ The contract **never holds funds**. `buyLicense` pulls USDC from the buyer direc
 | `/` Marketplace | 3 clip cards (preview, title, contributor credit, prices) + **live "licenses sold" ticker** | `GET /api/clips`, `GET /api/feed` (poll every 3 s) |
 | `/clips/[id]` | Preview player, split breakdown, use-type picker, **Buy** (connect → approve → buy, with pending/confirmed/failed states) | `GET /api/clips/[id]` |
 | `/licenses` | The connected wallet's licenses with an Arc explorer link and a **Download** button | `GET /api/licenses?buyer=`, `POST /api/download` |
-| `/check` **Is this take cleared?** | Drop a file (hashed in the browser with sha256) or pick a clip, optionally enter a wallet address → "Cleared for Social use by 0xab…12 on Nov 18 (tx)" or "No license found" | `GET /api/check?fileHash=&buyer=` (reads `license_events`) |
+| `/check` **Check License** | Drop a file (hashed in the browser with sha256) or pick a clip, optionally enter a wallet address → "Cleared for Social use by 0xab…12 on Nov 18 (tx)" or "No license found" | `GET /api/check?fileHash=&buyer=` (reads `license_events`) |
 
 **Download gate (no login):** the server checks only one thing: does the connected wallet own a license for this clip in `license_events`? The wallet signs a short message, which is free and costs no gas, so the server knows the request really comes from that wallet. Without the signature, anyone could paste a buyer's address. If the check passes, the server returns a short-lived signed URL.
 

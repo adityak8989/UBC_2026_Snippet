@@ -2,7 +2,7 @@
 
 License 30-second moments from podcasts, paid in USDC on **Arc testnet**.
 
-A buyer picks a clip and a use type (Editorial, Social, or Commercial) and pays in USDC. The `SnippetLicenses` contract records the license on-chain: clip, file hash, buyer, price, use type, and timestamp. It pays the rights holder, the clip's contributor, and the platform in the same transaction. A live "licenses sold" feed and an "Is this take cleared?" checker read those on-chain events through QuickNode Streams.
+A buyer picks a clip and a use type (Editorial, Social, or Commercial) and pays in USDC. The `SnippetLicenses` contract records the license on-chain: clip, file hash, buyer, price, use type, and timestamp. It pays the rights holder, the clip's contributor, and the platform in the same transaction. A live "licenses sold" feed and a "Check License" page read those on-chain events through QuickNode Streams.
 
 Hackathon project (UBC, Nov 2026). **Testnet only.** All demo clips come from our own recorded podcast.
 
