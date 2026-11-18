@@ -43,7 +43,7 @@ export function PurchaseReceipt({
         <div className="min-w-0">
           <p className="font-display text-base font-bold">License #{licenseId.toString()} purchased</p>
           <p className="text-xs text-muted">
-            You paid <span className="font-semibold text-ink">{formatUsdUnits(priceUnits)} USDC</span> for a {useTypeLabel} license
+            You paid <span className="font-semibold text-ink">{formatUsdUnits(priceUnits)} USDC</span> for {/^[aeiou]/i.test(useTypeLabel) ? "an" : "a"} {useTypeLabel} license
           </p>
         </div>
       </div>
