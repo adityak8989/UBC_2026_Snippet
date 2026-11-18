@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "License Certificate · Snippet",
-  description: "A podcast clip license recorded on Arc testnet, verified live from the Snippet contract.",
+  title: "License Certificate",
+  description: "A clip license recorded on Arc testnet by the Snippet hackathon demo, checked live against the contract.",
 };
 
 export default function LicenseLayout({ children }: { children: React.ReactNode }) {

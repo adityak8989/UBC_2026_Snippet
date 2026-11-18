@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { LicensesFeed } from "@/components/LicensesFeed";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
+import { REPO_URL } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { DEMO_CLIPS } from "@/lib/clips";
 import { SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
@@ -133,18 +134,42 @@ export default function Home() {
 
         {/* Live feed of licenses sold, from QuickNode Streams */}
         <LicensesFeed />
-      </main>
 
-      <footer className="border-t border-line py-6 text-center text-sm">
-        <a
-          href={`${EXPLORER_URL}/address/${SNIPPET_LICENSES_ADDRESS}`}
-          target="_blank"
-          rel="noreferrer"
-          className="font-medium text-muted transition-colors hover:text-ink"
-        >
-          Verified on Arc ↗
-        </a>
-      </footer>
+        {/* What this site is, in plain words */}
+        <section aria-labelledby="about" className="rounded-2xl border border-line bg-surface p-5 text-sm sm:p-6">
+          <h2 id="about" className="font-display text-lg font-bold">
+            About this demo
+          </h2>
+          <div className="mt-2 flex flex-col gap-2 text-muted">
+            <p>
+              Snippet is a student project built for the UBC 2026 hackathon. It runs only on Arc testnet and uses
+              testnet USDC, which has no real value; you can get some free at{" "}
+              <a href="https://faucet.circle.com" target="_blank" rel="noreferrer" className="text-primary-text underline">
+                faucet.circle.com
+              </a>
+              .
+            </p>
+            <p>
+              Buying a license asks your wallet for two things at most: permission to spend the exact license price,
+              never an unlimited amount, and the purchase itself. The license and its payment split are recorded by
+              our open source contract{" "}
+              <a
+                href={`${EXPLORER_URL}/address/${SNIPPET_LICENSES_ADDRESS}`}
+                target="_blank"
+                rel="noreferrer"
+                className="break-all font-mono text-xs text-primary-text underline"
+              >
+                {SNIPPET_LICENSES_ADDRESS}
+              </a>
+              , whose source code is published on the Arc testnet explorer and in our{" "}
+              <a href={REPO_URL} target="_blank" rel="noreferrer" className="text-primary-text underline">
+                GitHub repository
+              </a>
+              .
+            </p>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

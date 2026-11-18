@@ -93,7 +93,7 @@ function Certificate() {
   if (!view) return <CertificateSkeleton />;
 
   const clip = DEMO_CLIPS.find((c) => c.clipIdBytes32.toLowerCase() === view.clipId.toLowerCase());
-  // "Verified on Arc" only after the chain agrees: the license exists, its file hash is the clip's
+  // "Matches the Arc record" only after the chain agrees: the license exists, its file hash is the clip's
   // master, and (when shown from the Streams index) the indexed row matches the chain record.
   const sameAsChain =
     !!chainRecord &&
@@ -141,7 +141,7 @@ function Certificate() {
           </div>
           {verification === "verified" ? (
             <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-success/50 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
-              <span aria-hidden="true">✓</span> Verified on Arc
+              <span aria-hidden="true">✓</span> Matches the Arc record
             </span>
           ) : verification === "verifying" ? (
             <span className="inline-flex w-fit animate-pulse rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted">

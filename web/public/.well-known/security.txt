@@ -1,0 +1,6 @@
+# Snippet, a UBC 2026 hackathon demo on Arc testnet (testnet USDC only, no real funds).
+# Report security issues or incorrect phishing flags through GitHub Issues.
+Contact: https://github.com/adityak8989/UBC_2026_Snippet/issues
+Expires: 2027-05-31T23:59:59Z
+Preferred-Languages: en
+Canonical: https://snippet-gamma.vercel.app/.well-known/security.txt
