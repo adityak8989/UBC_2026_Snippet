@@ -48,6 +48,10 @@ Update this list in the same commit that finishes each item.
 - [x] On-chain: ListClips (clip-4..6) and DelistClips (clip-1..3); `npm run verify-onchain` passes
 - [x] Site redeployed (clip-4..6, captions, search live on snippet-gamma.vercel.app)
 
+**Wed: passkey checkout (Circle Modular Wallets + Gas Station)**
+- [x] Buy with passkey (no wallet needed): Circle smart account on Arc testnet, approve + buyLicense in one user operation, gas sponsored by Circle Gas Station; license #6 bought this way end to end
+- [x] Receipt, certificate, feed and My licenses work for passkey purchases
+
 **Thu–Fri: ship**
 - [ ] Bug fixes from review
 - [ ] Demo video

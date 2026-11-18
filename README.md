@@ -145,6 +145,23 @@ cd ../web && npm run verify-onchain
 ```
 A clip's rights holder and contributor can't be changed after it's listed. Check both addresses before broadcasting.
 
+## Passkey checkout (Circle Modular Wallets + Gas Station)
+
+There are two ways to buy on a clip page: a browser wallet (MetaMask and others), or **Buy with passkey (no wallet needed)**.
+
+- **Account:** a passkey (Face ID, Touch ID, or a device PIN) owns a Circle smart account on Arc testnet, created with `@circle-fin/modular-wallets-core` and viem account abstraction. The smart account's address is the license holder on chain.
+- **One confirmation:** the USDC approve (exact price) and `buyLicense` go in one user operation, so one passkey confirmation buys the license.
+- **Gas:** Circle Gas Station sponsors it (`paymaster: true`; testnet is sponsored automatically). If sponsorship is refused, the account pays gas in USDC instead.
+- **Funding:** the account only needs USDC for the price. When it has too little, the panel shows its address with a copy button and a faucet link.
+- **After purchase:** the receipt, certificate, live feed (QuickNode Streams) and My licenses work the same as for wallet purchases. With no wallet connected, My licenses shows the passkey account's licenses.
+- **Storage:** only the passkey's public data (credential id, public key, username) is kept in the browser. The private key never leaves the device.
+
+Code: [`web/lib/passkey.ts`](web/lib/passkey.ts) and [`web/components/PasskeyCheckout.tsx`](web/components/PasskeyCheckout.tsx).
+
+**Config:** `NEXT_PUBLIC_CIRCLE_CLIENT_KEY` and `NEXT_PUBLIC_CIRCLE_CLIENT_URL` (in `web/.env.local` and the Vercel project; both are public client values). Passkeys only work on the passkey domain set in the Circle Console (Wallets → Modular Wallets → Passkey): `snippet-gamma.vercel.app` in production and `localhost` for development. Preview URLs won't work.
+
+**Tested:** license #6 was bought this way on Arc testnet, with gas sponsored by Circle's paymaster. The smart account paid exactly the $5 price and nothing for gas.
+
 ## How we use ElevenLabs
 
 Every clip's sound is transcribed with **ElevenLabs Speech to Text** (`scribe_v2`, word-level timestamps). The transcript drives three features:
