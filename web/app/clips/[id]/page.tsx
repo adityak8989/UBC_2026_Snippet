@@ -198,7 +198,7 @@ function ClipDetailContent() {
         <p className="mb-6 text-muted">The clip you are looking for does not exist.</p>
         <Link
           href="/"
-          className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-bg hover:opacity-90"
+          className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
         >
           ← Back to Marketplace
         </Link>
@@ -401,7 +401,7 @@ function ClipDetailContent() {
                     type="button"
                     onClick={() => switchChain({ chainId: ARC_TESTNET_CHAIN_ID })}
                     disabled={isSwitching}
-                    className="w-full cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-bg hover:opacity-90 disabled:opacity-50"
+                    className="w-full cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
                   >
                     {isSwitching ? "Check your wallet..." : "Switch to Arc Testnet"}
                   </button>
@@ -475,7 +475,7 @@ function ClipDetailContent() {
                       type="button"
                       onClick={handleBuy}
                       disabled={notEnoughUsdc || needsApproval || isBuyPending || isBuyConfirming}
-                      className="w-full cursor-pointer rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-bg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="w-full cursor-pointer rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {isBuyPending
                         ? "Check Wallet to Buy..."

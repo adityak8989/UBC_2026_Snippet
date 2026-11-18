@@ -80,7 +80,7 @@ export function PurchaseReceipt({
       <div className="flex flex-col gap-2">
         <Link
           href={`/license/${licenseId.toString()}?tx=${txHash}`}
-          className="rounded-xl bg-primary px-4 py-2.5 text-center text-sm font-semibold text-bg hover:opacity-90"
+          className="rounded-xl bg-primary px-4 py-2.5 text-center text-sm font-semibold text-white hover:opacity-90"
         >
           View your license
         </Link>

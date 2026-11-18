@@ -1,11 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { LicensesFeed } from "@/components/LicensesFeed";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { DEMO_CLIPS } from "@/lib/clips";
-import { USDC_ADDRESS, SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 
 export default function Home() {
   return (
@@ -118,7 +116,7 @@ export default function Home() {
                       {/* Action Button */}
                       <Link
                         href={`/clips/${clip.id}`}
-                        className="w-full rounded-xl bg-primary px-4 py-2.5 text-center text-sm font-semibold text-bg transition-opacity hover:opacity-90"
+                        className="w-full rounded-xl bg-primary px-4 py-2.5 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
                       >
                         Select License & Buy →
                       </Link>
@@ -129,35 +127,6 @@ export default function Home() {
             })}
           </div>
         </section>
-
-        {/* Live feed of licenses sold, from QuickNode Streams */}
-        <LicensesFeed />
-
-        {/* Info Footer Callout */}
-        <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-line bg-surface p-6 text-xs text-muted sm:flex-row sm:items-center">
-          <div className="flex min-w-0 flex-col gap-1">
-            <p className="font-medium text-ink">Arc Testnet Details</p>
-            <p className="break-all">
-              Chain ID: <code className="font-mono">5042002</code> · USDC Token:{" "}
-              <code className="font-mono">{USDC_ADDRESS}</code>
-            </p>
-            {SNIPPET_LICENSES_ADDRESS !== "0x0000000000000000000000000000000000000000" ? (
-              <p className="break-all">
-                Contract: <code className="font-mono">{SNIPPET_LICENSES_ADDRESS}</code>
-              </p>
-            ) : (
-              <p className="text-primary">Contract address not yet set in .env</p>
-            )}
-          </div>
-          <a
-            href="https://faucet.circle.com"
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 rounded-lg border border-line bg-surface-2 px-3 py-1.5 font-medium text-ink hover:border-muted/60"
-          >
-            Get Testnet USDC ↗
-          </a>
-        </div>
       </main>
     </div>
   );

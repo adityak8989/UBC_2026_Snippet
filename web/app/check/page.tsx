@@ -72,11 +72,15 @@ export default function CheckPage() {
     <div className="flex min-h-screen flex-col">
       <SiteHeader active="check" />
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-10">
-        <div className="flex flex-col gap-2 text-center">
-          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Is this take cleared?</h1>
+        <div className="flex flex-col gap-3 text-center">
+          <div className="inline-flex items-center justify-center">
+            <span className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              Powered by QuickNode Streams
+            </span>
+          </div>
+          <h1 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">Check License</h1>
           <p className="text-muted">
-            Drop a video file to see if it is a licensed clip on Snippet. Your browser fingerprints the file
-            (SHA256) and compares it with the fingerprints recorded on Arc. Nothing is uploaded.
+            Drop any video file to verify if it carries an active license on Arc testnet. Clearance records and license events are indexed in real time using QuickNode Streams. Nothing is uploaded.
           </p>
         </div>
 

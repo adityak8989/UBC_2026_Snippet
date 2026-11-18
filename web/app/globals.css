@@ -9,7 +9,7 @@
   --color-line: #2b303b;
   --color-ink: #f5f3ee;
   --color-muted: #8a8f98;
-  --color-primary: #ff5a36;
+  --color-primary: #2563eb;
   --color-success: #22c55e;
 }
 
@@ -31,7 +31,7 @@ body {
 
 ::selection {
   background: var(--color-primary);
-  color: var(--color-bg);
+  color: #ffffff;
 }
 
 /* Purchase receipt: each payout line fills, a dot travels along it, then the amount appears. */

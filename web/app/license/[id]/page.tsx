@@ -277,7 +277,7 @@ function ShareActions() {
         <button
           type="button"
           onClick={() => navigator.share({ title: "Snippet license", url: window.location.href }).catch(() => {})}
-          className="flex-1 cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-bg hover:opacity-90"
+          className="flex-1 cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
         >
           Share
         </button>
@@ -291,7 +291,7 @@ function Notice({ title, children }: { title: string; children: React.ReactNode 
     <div className="rounded-3xl border border-line bg-surface p-8 text-center">
       <h1 className="font-display text-xl font-bold">{title}</h1>
       <p className="mt-2 text-sm text-muted">{children}</p>
-      <Link href="/" className="mt-6 inline-block rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-bg">
+      <Link href="/" className="mt-6 inline-block rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white">
         Browse clips
       </Link>
     </div>

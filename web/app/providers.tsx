@@ -7,10 +7,10 @@ import { useState } from "react";
 import { WagmiProvider } from "wagmi";
 import { wagmiConfig } from "@/lib/wagmi";
 
-// Connect button and wallet modal in the Snippet palette (dark text on primary for contrast).
+// Connect button and wallet modal in the Snippet palette (blue primary).
 const rainbowTheme = darkTheme({
-  accentColor: "#FF5A36",
-  accentColorForeground: "#0F1115",
+  accentColor: "#2563eb",
+  accentColorForeground: "#ffffff",
   borderRadius: "medium",
 });
 
