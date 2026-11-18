@@ -8,11 +8,12 @@ import { FirstTimeGuide } from "./FirstTimeGuide";
 import { Logo } from "./Logo";
 
 // `active` highlights the current page in the nav. (A prop rather than usePathname, which would
-// make every page using the header dynamic under Cache Components.)
-export function SiteHeader({ active }: { active?: "check" | "licenses" } = {}) {
+// make every page using the header dynamic under Cache Components.) `guide` shows the "New here?" pill
+// (homepage and clip pages only).
+export function SiteHeader({ active, guide = false }: { active?: "check" | "licenses"; guide?: boolean } = {}) {
   const onCheck = active === "check";
   const onLicenses = active === "licenses";
-  // The first time guide sits under Connect Wallet until a wallet is connected (or it is dismissed).
+  // The guide pill sits next to Connect Wallet until a wallet is connected (or it is dismissed).
   const isClient = useIsClient();
   const { isConnected } = useAccount();
 
@@ -21,13 +22,13 @@ export function SiteHeader({ active }: { active?: "check" | "licenses" } = {}) {
       <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" aria-label="Snippet home" className="rounded-lg">
-            <Logo />
+            <Logo compact />
           </Link>
           <span className="hidden rounded-full border border-line bg-surface px-2.5 py-1 text-xs font-medium text-muted sm:inline">
             Arc Testnet
           </span>
         </div>
-        <nav className="flex items-center gap-2 sm:gap-4">
+        <nav className="flex shrink-0 items-center gap-3 whitespace-nowrap sm:gap-4">
           <Link
             href="/check"
             aria-current={onCheck ? "page" : undefined}
@@ -45,11 +46,12 @@ export function SiteHeader({ active }: { active?: "check" | "licenses" } = {}) {
               onLicenses ? "text-primary-text" : "text-muted hover:text-ink"
             }`}
           >
-            My licenses
+            <span className="sm:hidden">Licenses</span>
+            <span className="hidden sm:inline">My licenses</span>
           </Link>
+          {guide && isClient && !isConnected && <FirstTimeGuide />}
           <ConnectButton showBalance={false} chainStatus="icon" accountStatus="address" />
         </nav>
-        {isClient && !isConnected && <FirstTimeGuide />}
       </div>
     </header>
   );

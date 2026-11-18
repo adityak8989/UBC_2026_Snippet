@@ -27,11 +27,12 @@ export function LogoMark({ className = "h-8 w-8" }: { className?: string }) {
   );
 }
 
-export function Logo() {
+/** `compact`: the wordmark only from the sm breakpoint up, so the header fits a phone. */
+export function Logo({ compact = false }: { compact?: boolean } = {}) {
   return (
     <span className="flex items-center gap-1.5 text-ink">
       <LogoMark />
-      <span className="font-display text-xl font-bold tracking-tight">Snippet</span>
+      <span className={`font-display text-xl font-bold tracking-tight ${compact ? "hidden sm:inline" : ""}`}>Snippet</span>
     </span>
   );
 }
