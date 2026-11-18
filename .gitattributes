@@ -1,0 +1,2 @@
+# Transcript JSON files are hashed (sha256 shown on license certificates): keep their bytes exact.
+web/lib/transcripts/*.json -text

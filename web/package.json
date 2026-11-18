@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check-clips": "node scripts/check-clips.mjs",
-    "verify-onchain": "node scripts/verify-onchain.mjs"
+    "verify-onchain": "node scripts/verify-onchain.mjs",
+    "transcribe": "node scripts/transcribe.mjs"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "2.2.11",
