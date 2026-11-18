@@ -137,8 +137,9 @@ export function FirstTimeGuide({ autoOpen = false }: { autoOpen?: boolean }) {
           id="first-time-guide"
           aria-label="New here?"
           // Anchored to the sticky header (full viewport width), 16px from the right edge, so at 1280px and
-          // up it sits to the right of the centered hero headline instead of over it.
-          className="absolute right-4 top-full z-30 mt-2 w-[calc(100vw-2rem)] max-w-72 rounded-2xl border border-line bg-surface p-4 shadow-xl shadow-black/40"
+          // up it sits to the right of the centered hero headline instead of over it. whitespace-normal: the
+          // header nav is nowrap, and the panel's text must wrap inside its 288px.
+          className="absolute right-4 top-full z-30 mt-2 w-[calc(100vw-2rem)] max-w-72 whitespace-normal rounded-2xl border border-line bg-surface p-4 shadow-xl shadow-black/40"
         >
           <div className="flex items-start justify-between gap-2">
             <p className="font-display text-sm font-bold">New here? Three steps</p>
