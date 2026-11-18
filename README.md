@@ -119,6 +119,22 @@ Arc testnet ──► QuickNode Stream (Logs dataset + filter) ──► POST /a
 
 **Why it's core.** Reading every sale from the contract means one RPC call per license, and the public RPC refuses log searches over a few thousand blocks. Streams turns the chain into a push feed: each sale arrives once, is signed, and backfills from a fixed block. That makes the live feed, totals, and lookups instant and cheap. The contract stays the source of truth that every certificate is checked against.
 
+## How we use ElevenLabs
+
+Every clip's sound is transcribed with **ElevenLabs Speech to Text** (`scribe_v2`, word-level timestamps). The transcript drives three features:
+- **Synced captions** on the clip page: each word lights up as it's spoken, with a **Transcript** toggle where clicking a word jumps there.
+- **"Search what's said"** on the homepage: type a quote and jump to that exact moment in the clip.
+- **"Licensed words"** on each license certificate: the transcript of the licensed master, with its SHA256.
+
+[`web/scripts/transcribe.mjs`](web/scripts/transcribe.mjs) sends the clip's **original master**, after checking its sha256 against `fileHash`, and saves `web/lib/transcripts/<clip-id>.json`: text, language, and each word or audio event (`[laughs]`) with start and end times. It also regenerates `manifest.ts` with each transcript's sha256. Clips with no speech show no captions. Clips with no audio track are skipped.
+
+```
+cd web
+npm run transcribe -- clip-4 clip-6   # or --all
+npm run check-clips                   # transcript matches its master and its hash
+```
+It reads `ELEVENLABS_API_KEY` from `web/.env.local`, and only on your laptop. The site never calls ElevenLabs.
+
 ## Notes
 - **USDC decimals on Arc:** the native gas balance uses 18 decimals; the USDC ERC-20 interface (`0x3600000000000000000000000000000000000000`) uses 6. The contract and app use only the 6-decimal ERC-20 interface.
 - **`npm audit` warnings:** you will see warnings about WalletConnect dependencies. The only fix npm offers is wagmi v3, which RainbowKit doesn't support yet, so we're staying on wagmi v2 for the hackathon.

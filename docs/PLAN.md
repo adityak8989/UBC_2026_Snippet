@@ -38,6 +38,16 @@ Update this list in the same commit that finishes each item.
 - [ ] `/licenses` page with downloads
 - [ ] Feature freeze + full demo run on the deployed site
 
+**Wed: ElevenLabs (bounty: voice/audio central)**
+- [x] `scripts/transcribe.mjs`: ElevenLabs Speech to Text on the original master, word timestamps, transcript sha256
+- [x] Clip page: word-synced captions + Transcript toggle (hidden for clips without speech)
+- [x] Homepage "Search what's said" → jumps to the moment on the clip page
+- [x] Certificate "Licensed words" with transcript hash
+- [x] SpaceLofi's 3 stream clips (clip-4..6) added: masters, transcripts, prices 5 / 15 / Commercial not for sale
+- [ ] Previews + posters for clip-4..6 (needs ffmpeg)
+- [ ] On-chain: ListClips (clip-4..6) and DelistClips (clip-1..3), then `npm run verify-onchain`
+- [ ] Site redeployed
+
 **Thu–Fri: ship**
 - [ ] Bug fixes from review
 - [ ] Demo video
