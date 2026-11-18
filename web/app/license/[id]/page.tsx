@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { usePublicClient, useReadContract } from "wagmi";
 import { zeroAddress } from "viem";
 import { LogoMark } from "@/components/Logo";
+import { CertificateQr } from "@/components/CertificateQr";
 import { Details } from "@/components/Details";
 import { SiteHeader } from "@/components/SiteHeader";
 import { formatUsdUnits } from "@/lib/money";
@@ -219,6 +220,10 @@ function Certificate() {
               </li>
             ))}
           </ul>
+        </div>
+
+        <div className="mt-6">
+          <CertificateQr />
         </div>
 
         <Details className="mt-6">
