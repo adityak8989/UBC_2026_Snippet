@@ -1,0 +1,65 @@
+{
+  "clipId": "clip-6",
+  "fileHash": "0xc9bedc47e1eaf31daa1f529caa5f0950d9910464f1618eda80fcec9eb26999f8",
+  "model": "scribe_v2",
+  "language": "eng",
+  "languageProbability": 0.9535739421844482,
+  "hasSpeech": true,
+  "text": "[gunshots] Anything. We're losing to Marshalls. Oh my God.",
+  "words": [
+    {
+      "text": "[gunshots]",
+      "start": 0,
+      "end": 6.16,
+      "type": "audio_event"
+    },
+    {
+      "text": "Anything.",
+      "start": 7,
+      "end": 7.38,
+      "type": "word"
+    },
+    {
+      "text": "We're",
+      "start": 8.58,
+      "end": 8.7,
+      "type": "word"
+    },
+    {
+      "text": "losing",
+      "start": 8.76,
+      "end": 9.18,
+      "type": "word"
+    },
+    {
+      "text": "to",
+      "start": 9.22,
+      "end": 9.36,
+      "type": "word"
+    },
+    {
+      "text": "Marshalls.",
+      "start": 9.42,
+      "end": 10.16,
+      "type": "word"
+    },
+    {
+      "text": "Oh",
+      "start": 11.86,
+      "end": 11.92,
+      "type": "word"
+    },
+    {
+      "text": "my",
+      "start": 12.3,
+      "end": 12.48,
+      "type": "word"
+    },
+    {
+      "text": "God.",
+      "start": 12.62,
+      "end": 13.02,
+      "type": "word"
+    }
+  ]
+}

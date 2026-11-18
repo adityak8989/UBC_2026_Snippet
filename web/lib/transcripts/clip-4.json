@@ -1,0 +1,113 @@
+{
+  "clipId": "clip-4",
+  "fileHash": "0x496935ee56fe54fd808ca2695d80b45d1c2012b905f038b7059657542b95ae02",
+  "model": "scribe_v2",
+  "language": "eng",
+  "languageProbability": 0.946699321269989,
+  "hasSpeech": true,
+  "text": "One. [laughs] Good. Oh, wait, there's someone- Yeah, just go. Just go do it. See if he-",
+  "words": [
+    {
+      "text": "One.",
+      "start": 0.04,
+      "end": 0.34,
+      "type": "word"
+    },
+    {
+      "text": "[laughs]",
+      "start": 0.48,
+      "end": 3.2,
+      "type": "audio_event"
+    },
+    {
+      "text": "Good.",
+      "start": 3.42,
+      "end": 3.66,
+      "type": "word"
+    },
+    {
+      "text": "Oh,",
+      "start": 7.62,
+      "end": 7.68,
+      "type": "word"
+    },
+    {
+      "text": "wait,",
+      "start": 7.7,
+      "end": 7.8,
+      "type": "word"
+    },
+    {
+      "text": "there's",
+      "start": 7.86,
+      "end": 7.98,
+      "type": "word"
+    },
+    {
+      "text": "someone-",
+      "start": 8.02,
+      "end": 8.28,
+      "type": "word"
+    },
+    {
+      "text": "Yeah,",
+      "start": 8.76,
+      "end": 8.86,
+      "type": "word"
+    },
+    {
+      "text": "just",
+      "start": 8.9,
+      "end": 9,
+      "type": "word"
+    },
+    {
+      "text": "go.",
+      "start": 9.04,
+      "end": 9.14,
+      "type": "word"
+    },
+    {
+      "text": "Just",
+      "start": 9.2,
+      "end": 9.3,
+      "type": "word"
+    },
+    {
+      "text": "go",
+      "start": 9.34,
+      "end": 9.42,
+      "type": "word"
+    },
+    {
+      "text": "do",
+      "start": 9.44,
+      "end": 9.52,
+      "type": "word"
+    },
+    {
+      "text": "it.",
+      "start": 9.56,
+      "end": 9.64,
+      "type": "word"
+    },
+    {
+      "text": "See",
+      "start": 11.94,
+      "end": 12.04,
+      "type": "word"
+    },
+    {
+      "text": "if",
+      "start": 12.06,
+      "end": 12.16,
+      "type": "word"
+    },
+    {
+      "text": "he-",
+      "start": 12.2,
+      "end": 12.3,
+      "type": "word"
+    }
+  ]
+}

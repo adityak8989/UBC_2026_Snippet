@@ -22,7 +22,8 @@
         "rightsHolderBps": 7000,
         "contributorBps": 2000,
         "platformBps": 1000
-      }
+      },
+      "active": false
     },
     {
       "id": "clip-2",
@@ -46,7 +47,8 @@
         "rightsHolderBps": 7000,
         "contributorBps": 2000,
         "platformBps": 1000
-      }
+      },
+      "active": false
     },
     {
       "id": "clip-3",
@@ -70,6 +72,88 @@
         "rightsHolderBps": 9000,
         "contributorBps": 0,
         "platformBps": 1000
+      },
+      "active": false
+    },
+    {
+      "id": "clip-4",
+      "clipIdBytes32": "0x2ffcc95b6a5f487325f9ec0c4780cf11c0f3186a7b1bbb0e7c465e39c4148646",
+      "title": "“Just go. Just go do it.”",
+      "description": "A laugh, a spotted enemy, then the call to push: “Oh, wait, there’s someone. Yeah, just go. Just go do it.”",
+      "show": "Call of Duty: Modern Warfare II",
+      "speaker": "SpaceLofi",
+      "contributorName": "SpaceLofi",
+      "duration": "0:13",
+      "videoUrl": "/clips/clip4.mp4",
+      "previewUrl": "/clips/clip4.mp4",
+      "posterUrl": "",
+      "fileHash": "0x496935ee56fe54fd808ca2695d80b45d1c2012b905f038b7059657542b95ae02",
+      "prices": {
+        "editorial": 5,
+        "social": 15,
+        "commercial": 0
+      },
+      "split": {
+        "rightsHolderBps": 9000,
+        "contributorBps": 0,
+        "platformBps": 1000
+      },
+      "priceNotes": {
+        "commercial": "Commercial use requires the game publisher’s permission"
+      }
+    },
+    {
+      "id": "clip-5",
+      "clipIdBytes32": "0xdc8701308d2fb31bf986706e31e9b37617f0651f1de2c9708a8e5d23141262d4",
+      "title": "Into the hunt",
+      "description": "Six seconds of a hunt carried by dramatic music, with no commentary. Licensed as footage and sound only.",
+      "show": "Monster Hunter: World",
+      "speaker": "SpaceLofi",
+      "contributorName": "SpaceLofi",
+      "duration": "0:06",
+      "videoUrl": "/clips/clip5.mp4",
+      "previewUrl": "/clips/clip5.mp4",
+      "posterUrl": "",
+      "fileHash": "0xf99e2a4421068a9f1f28da6f53086947e908fc9e9e67c78cd4942152bd9f7280",
+      "prices": {
+        "editorial": 5,
+        "social": 15,
+        "commercial": 0
+      },
+      "split": {
+        "rightsHolderBps": 9000,
+        "contributorBps": 0,
+        "platformBps": 1000
+      },
+      "priceNotes": {
+        "commercial": "Commercial use requires the game publisher’s permission"
+      }
+    },
+    {
+      "id": "clip-6",
+      "clipIdBytes32": "0xdbee7c1deb9b8ee88148df362f46e20f7043e32f5421ca2310eb1958c75eb8ba",
+      "title": "“We’re losing to Marshals”",
+      "description": "Gunfire, then the realization: “We’re losing to Marshals. Oh my God.”",
+      "show": "Valorant",
+      "speaker": "SpaceLofi",
+      "contributorName": "SpaceLofi",
+      "duration": "0:13",
+      "videoUrl": "/clips/clip6.mp4",
+      "previewUrl": "/clips/clip6.mp4",
+      "posterUrl": "",
+      "fileHash": "0xc9bedc47e1eaf31daa1f529caa5f0950d9910464f1618eda80fcec9eb26999f8",
+      "prices": {
+        "editorial": 5,
+        "social": 15,
+        "commercial": 0
+      },
+      "split": {
+        "rightsHolderBps": 9000,
+        "contributorBps": 0,
+        "platformBps": 1000
+      },
+      "priceNotes": {
+        "commercial": "Commercial use requires the game publisher’s permission"
       }
     }
   ]

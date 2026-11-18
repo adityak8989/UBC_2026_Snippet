@@ -5,7 +5,7 @@ import { LicensesFeed } from "@/components/LicensesFeed";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { REPO_URL } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
-import { DEMO_CLIPS } from "@/lib/clips";
+import { LISTED_CLIPS } from "@/lib/clips";
 import { SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { EXPLORER_URL } from "@/lib/licenses";
 
@@ -35,12 +35,12 @@ export default function Home() {
               </p>
             </div>
             <span className="shrink-0 font-mono text-xs text-muted">
-              {DEMO_CLIPS.length} clips available
+              {LISTED_CLIPS.length} clips available
             </span>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {DEMO_CLIPS.map((clip) => {
+            {LISTED_CLIPS.map((clip) => {
               const rhPercent = clip.split.rightsHolderBps / 100;
               const contribPercent = clip.split.contributorBps / 100;
               const platformPercent = clip.split.platformBps / 100;
@@ -54,7 +54,7 @@ export default function Home() {
                   <div className="relative flex aspect-video items-center justify-center overflow-hidden bg-black">
                     <video
                       src={clip.previewUrl}
-                      poster={clip.posterUrl}
+                      poster={clip.posterUrl || undefined}
                       controls
                       playsInline
                       preload="metadata"
@@ -111,7 +111,13 @@ export default function Home() {
                             {i > 0 && <div className="h-6 w-px bg-line" />}
                             <div className="flex-1 text-center">
                               <div className="text-muted">{label}</div>
-                              <div className="font-bold text-ink">${price}</div>
+                              {price > 0 ? (
+                                <div className="font-bold text-ink">${price}</div>
+                              ) : (
+                                <div className="font-semibold text-muted" title={clip.priceNotes?.[label.toLowerCase() as "commercial"]}>
+                                  n/a
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}

@@ -317,7 +317,7 @@ function ClipDetailContent() {
               {/* Plays the light preview; the hashed master (clip.videoUrl) is only for download */}
               <video
                 src={clip.previewUrl}
-                poster={clip.posterUrl}
+                poster={clip.posterUrl || undefined}
                 controls
                 playsInline
                 preload="metadata"
@@ -384,25 +384,36 @@ function ClipDetailContent() {
                   price: clip.prices.commercial,
                   desc: "Paid advertisements, brand sponsorship, broadcast TV, product promos.",
                 },
-              ].map((tier) => (
-                <button
-                  type="button"
-                  key={tier.key}
-                  onClick={() => setSelectedTier(tier.key)}
-                  aria-pressed={selectedTier === tier.key}
-                  className={`flex cursor-pointer flex-col gap-1 rounded-xl border p-4 text-left transition-all ${
-                    selectedTier === tier.key
-                      ? "border-primary bg-primary/10 ring-2 ring-primary/20"
-                      : "border-line hover:border-muted/60"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold">{tier.name}</span>
-                    <span className="font-display text-base font-bold text-primary-text">${tier.price} USDC</span>
-                  </div>
-                  <p className="text-xs text-muted">{tier.desc}</p>
-                </button>
-              ))}
+              ].map((tier) => {
+                // Price 0 = not for sale: the contract refuses it (PriceNotSet), so it can't be picked.
+                const forSale = tier.price > 0;
+                return (
+                  <button
+                    type="button"
+                    key={tier.key}
+                    onClick={() => setSelectedTier(tier.key)}
+                    disabled={!forSale}
+                    aria-pressed={selectedTier === tier.key}
+                    className={`flex flex-col gap-1 rounded-xl border p-4 text-left transition-all ${
+                      !forSale
+                        ? "cursor-not-allowed border-dashed border-line opacity-70"
+                        : selectedTier === tier.key
+                          ? "cursor-pointer border-primary bg-primary/10 ring-2 ring-primary/20"
+                          : "cursor-pointer border-line hover:border-muted/60"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold">{tier.name}</span>
+                      {forSale ? (
+                        <span className="font-display text-base font-bold text-primary-text">${tier.price} USDC</span>
+                      ) : (
+                        <span className="text-xs font-semibold uppercase tracking-wider text-muted">Not available</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted">{forSale ? tier.desc : (clip.priceNotes?.[tier.key] ?? "Not for sale.")}</p>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Split Breakdown Visualizer */}
@@ -431,7 +442,11 @@ function ClipDetailContent() {
 
             {/* Checkout Action Zone */}
             <div className="flex flex-col gap-3 border-t border-line pt-2">
-              {!isConnected ? (
+              {clip.active === false ? (
+                <div className="rounded-xl bg-surface-2 p-4 text-center text-sm text-muted">
+                  This clip is no longer for sale. Licenses already sold for it stay valid.
+                </div>
+              ) : !isConnected ? (
                 <div className="flex flex-col items-center gap-2 rounded-xl bg-surface-2 p-3">
                   <span className="text-xs text-muted">Connect your wallet to purchase with testnet USDC</span>
                   <ConnectButton />

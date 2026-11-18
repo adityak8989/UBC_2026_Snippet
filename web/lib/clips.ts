@@ -10,7 +10,8 @@ import clipsData from "./clips.json";
 // Prices are whole USDC (the list script and the clip page both convert with 6 decimals).
 //
 // videoUrl is the original master file: the one fileHash describes, the /check page matches, and
-// licensees download. previewUrl (720p, ~2 MB, faststart) and posterUrl are for playback only;
+// licensees download. previewUrl (720p, ~2 MB, faststart) and posterUrl are for playback only
+// (posterUrl may be empty until a poster is made);
 // they are different bytes, so never hash them or list them on-chain.
 export interface Clip {
   id: string;
@@ -35,9 +36,18 @@ export interface Clip {
     contributorBps: number;
     platformBps: number;
   };
+  // Why a use type is unavailable (price 0: the contract refuses to sell it), shown next to it.
+  priceNotes?: Partial<Record<"editorial" | "social" | "commercial", string>>;
+  // false = delisted (contracts/script/DelistClips.s.sol). Kept here so certificates for licenses
+  // already sold still find the clip, but it is no longer shown or sold.
+  active?: boolean;
 }
 
+/** Every clip ever listed, including delisted ones: use this to look up a clip from a license. */
 export const DEMO_CLIPS = clipsData.clips as Clip[];
+
+/** Clips currently for sale: the marketplace and search. */
+export const LISTED_CLIPS = DEMO_CLIPS.filter((c) => c.active !== false);
 
 export function getClipById(id: string): Clip | undefined {
   return DEMO_CLIPS.find((c) => c.id === id);

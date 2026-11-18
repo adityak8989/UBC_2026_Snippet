@@ -1,5 +1,5 @@
 // Reads the deployed SnippetLicenses contract and checks every clip against web/lib/clips.json
-// (listed + active, file hash, split, prices). Run from web/:
+// (listed, active unless clips.json marks it "active": false, file hash, split, prices). Run from web/:
 //   npm run verify-onchain [-- <contract address> [rpc url]]
 import { readFileSync } from "node:fs";
 import { createPublicClient, http, parseUnits, zeroAddress } from "viem";
@@ -24,7 +24,8 @@ for (const clip of clips) {
     parseUnits(String(p), 6),
   );
   const checks = {
-    listedActive: c.listed && c.active,
+    listed: c.listed,
+    active: c.active === (clip.active !== false),
     fileHash: c.fileHash === clip.fileHash,
     split:
       c.rhBps === clip.split.rightsHolderBps &&

@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# raw incoming clips (masters are copied to public/clips once added to lib/clips.json)
+/incoming/

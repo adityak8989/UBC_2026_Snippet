@@ -1,0 +1,17 @@
+{
+  "clipId": "clip-5",
+  "fileHash": "0xf99e2a4421068a9f1f28da6f53086947e908fc9e9e67c78cd4942152bd9f7280",
+  "model": "scribe_v2",
+  "language": "eng",
+  "languageProbability": 0.3254505693912506,
+  "hasSpeech": false,
+  "text": "[dramatic music]",
+  "words": [
+    {
+      "text": "[dramatic music]",
+      "start": 0.04,
+      "end": 5.66,
+      "type": "audio_event"
+    }
+  ]
+}

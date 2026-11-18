@@ -1,11 +1,14 @@
 // Checks web/lib/clips.json before listing clips on-chain:
 // each fileHash is the sha256 of its file in public/, each clipIdBytes32 is keccak256(id),
-// each split sums to 10000 bps, and the playback preview and poster exist. Run from web/: npm run check-clips
+// each split sums to 10000 bps, the playback preview (not the master itself) and poster exist, every
+// price-0 (not for sale) use type has a note, and each transcript matches its master and manifest hash.
+// Run from web/: npm run check-clips
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { keccak256, toBytes } from "viem";
 
 const { clips } = JSON.parse(readFileSync(new URL("../lib/clips.json", import.meta.url), "utf8"));
+const manifest = readFileSync(new URL("../lib/transcripts/manifest.ts", import.meta.url), "utf8");
 let ok = true;
 
 for (const clip of clips) {
@@ -16,10 +19,18 @@ for (const clip of clips) {
     fileHash: sha === clip.fileHash,
     clipIdBytes32: keccak256(toBytes(clip.id)) === clip.clipIdBytes32,
     split: rightsHolderBps + contributorBps + platformBps === 10000,
-    previewAndPoster: [clip.previewUrl, clip.posterUrl].every(
-      (url) => url && existsSync(new URL(`../public${url}`, import.meta.url)),
-    ),
+    previewAndPoster:
+      clip.previewUrl !== clip.videoUrl &&
+      [clip.previewUrl, clip.posterUrl].every((url) => url && existsSync(new URL(`../public${url}`, import.meta.url))),
+    priceNotes: Object.entries(clip.prices).every(([use, price]) => price > 0 || !!clip.priceNotes?.[use]),
   };
+  const transcriptFile = new URL(`../lib/transcripts/${clip.id}.json`, import.meta.url);
+  if (existsSync(transcriptFile)) {
+    const bytes = readFileSync(transcriptFile);
+    const hash = "0x" + createHash("sha256").update(bytes).digest("hex");
+    checks.transcript =
+      JSON.parse(bytes).fileHash === clip.fileHash && manifest.includes(`"${clip.id}": { sha256: "${hash}"`);
+  }
   for (const [name, passed] of Object.entries(checks)) {
     if (!passed) ok = false;
     console.log(`${passed ? "ok  " : "FAIL"} ${clip.id} ${name}${name === "fileHash" && !passed ? ` (file is ${sha})` : ""}`);

@@ -290,6 +290,27 @@ contract SnippetLicensesTest is Test {
         licenses.buyLicense(CLIP, SnippetLicenses.UseType.Social);
     }
 
+    // Stream clips are listed with Commercial at 0 (needs the game publisher's permission): listing works,
+    // Commercial is refused, the other use types still sell.
+    function test_ListClip_WithZeroCommercialPrice_RefusesCommercialOnly() public {
+        bytes32 clipId = keccak256("clip-4");
+        uint256[3] memory prices = [uint256(5 * USDC), 15 * USDC, 0];
+        vm.prank(owner);
+        licenses.listClip(clipId, FILE_HASH, rightsHolder, address(0), 9000, 0, 1000, prices);
+
+        vm.prank(buyer);
+        vm.expectRevert(
+            abi.encodeWithSelector(SnippetLicenses.PriceNotSet.selector, clipId, SnippetLicenses.UseType.Commercial)
+        );
+        licenses.buyLicense(clipId, SnippetLicenses.UseType.Commercial);
+
+        uint256 before = usdc.balanceOf(buyer);
+        vm.prank(buyer);
+        licenses.buyLicense(clipId, SnippetLicenses.UseType.Social);
+        assertEq(before - usdc.balanceOf(buyer), 15 * USDC);
+        assertEq(licenses.licenseCount(), 1);
+    }
+
     function test_RevertWhen_InsufficientAllowance() public {
         vm.prank(buyer);
         usdc.approve(address(licenses), 0);
