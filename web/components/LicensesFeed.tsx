@@ -27,6 +27,23 @@ interface FeedItem {
 interface Feed {
   source: "streams" | "chain";
   items: FeedItem[]; // newest first
+  // Average seconds between Arc blocks: how soon a sent purchase is final. We can't see when a buyer
+  // pressed Buy, so this is the honest proxy, labelled as such. From license_events: (newest sale time
+  // minus oldest) / (blocks between them). Fallback: the latest 1000 blocks over RPC.
+  blockTime?: { seconds: number; basis: "licenses" | "rpc" };
+}
+
+const RPC_SAMPLE_BLOCKS = BigInt(1000);
+
+async function blockTimeFromRpc(client: PublicClient | undefined): Promise<Feed["blockTime"]> {
+  if (!client) return undefined;
+  try {
+    const latest = await client.getBlock();
+    const earlier = await client.getBlock({ blockNumber: latest.number - RPC_SAMPLE_BLOCKS });
+    return { seconds: Number(latest.timestamp - earlier.timestamp) / Number(RPC_SAMPLE_BLOCKS), basis: "rpc" };
+  } catch {
+    return undefined;
+  }
 }
 
 const SHOWN = 8;
@@ -37,9 +54,21 @@ async function loadFeed(client: PublicClient | undefined): Promise<Feed> {
   if (streamsConfigured) {
     try {
       const events = await fetchLicenseEvents();
+      const newest = events[0];
+      const oldest = events[events.length - 1];
+      const blocks = newest && oldest ? Number(newest.blockNumber - oldest.blockNumber) : 0;
+      // Needs sales far enough apart (>= 100 blocks) for 1 s timestamps to average out.
+      const blockTime: Feed["blockTime"] =
+        blocks >= 100
+          ? {
+              seconds: (newest.blockTimestamp.getTime() - oldest.blockTimestamp.getTime()) / 1000 / blocks,
+              basis: "licenses",
+            }
+          : await blockTimeFromRpc(client);
       return {
         source: "streams",
         items: events.map((e) => ({ ...e, time: e.blockTimestamp })),
+        blockTime,
       };
     } catch (err) {
       console.warn("Licenses feed: Supabase unavailable, reading the contract instead", err);
@@ -61,6 +90,7 @@ async function loadFeed(client: PublicClient | undefined): Promise<Feed> {
   );
   return {
     source: "chain",
+    blockTime: await blockTimeFromRpc(client),
     items: licenses.map((l, i) => ({
       licenseId: ids[i],
       clipId: l.clipId,
@@ -147,9 +177,21 @@ export function LicensesFeed() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <Stat label="Licenses sold" value={data ? items.length.toString() : undefined} />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Stat label="Paid to creators" value={data ? formatUsdUnits(totalToCreators) : undefined} />
+        <Stat label="Licenses sold" value={data ? items.length.toString() : undefined} />
+        <Stat
+          className="col-span-2 sm:col-span-1"
+          label="Settles in about"
+          value={data ? (data.blockTime ? `${data.blockTime.seconds.toFixed(1)}s` : "n/a") : undefined}
+          note={
+            data?.blockTime
+              ? data.blockTime.basis === "licenses"
+                ? "Average Arc block time, measured across the sales above"
+                : "Average Arc block time over the latest 1000 blocks"
+              : undefined
+          }
+        />
       </div>
 
       {/* Feed */}
@@ -210,15 +252,16 @@ export function LicensesFeed() {
   );
 }
 
-function Stat({ label, value }: { label: string; value?: string }) {
+function Stat({ label, value, note, className = "" }: { label: string; value?: string; note?: string; className?: string }) {
   return (
-    <div className="rounded-xl bg-surface-2 px-4 py-3">
+    <div className={`rounded-xl bg-surface-2 px-4 py-3 ${className}`}>
       <p className="text-xs uppercase tracking-wider text-muted">{label}</p>
       {value === undefined ? (
         <div className="mt-1 h-7 w-16 animate-pulse rounded bg-line" />
       ) : (
         <p className="font-display text-2xl font-bold">{value}</p>
       )}
+      {note && <p className="mt-0.5 text-[11px] leading-snug text-muted">{note}</p>}
     </div>
   );
 }
