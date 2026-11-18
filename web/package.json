@@ -9,7 +9,8 @@
     "lint": "eslint",
     "check-clips": "node scripts/check-clips.mjs",
     "verify-onchain": "node scripts/verify-onchain.mjs",
-    "transcribe": "node scripts/transcribe.mjs"
+    "transcribe": "node scripts/transcribe.mjs",
+    "add-clip": "node scripts/add-clip.mjs"
   },
   "dependencies": {
     "@rainbow-me/rainbowkit": "2.2.11",

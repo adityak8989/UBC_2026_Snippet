@@ -121,6 +121,30 @@ Arc testnet ──► QuickNode Stream (Logs dataset + filter) ──► POST /a
 
 **Why it's core.** Reading every sale from the contract means one RPC call per license, and the public RPC refuses log searches over a few thousand blocks. Streams turns the chain into a push feed: each sale arrives once, is signed, and backfills from a fixed block. That makes the live feed, totals, and lookups instant and cheap. The contract stays the source of truth that every certificate is checked against.
 
+## Rights and adding a clip
+
+Each clip in `web/lib/clips.json` has a `contentType`:
+- **`original`**: the creator owns everything in the clip, so Editorial, Social, and Commercial are all for sale.
+- **`gameplay`**: the clip names its `publisher` (for example Activision, Capcom, or Riot Games). The creator owns the commentary and play, but the game footage belongs to the publisher, so Commercial is not for sale (price 0, which the contract refuses).
+
+`npm run check-clips` enforces both rules. The clip page explains them in a "Rights" box, and each card carries an "Original" or "Gameplay" tag.
+
+**Adding a clip.** Put the raw recording in `web/incoming/` (gitignored), then from `web/`:
+```
+npm run add-clip -- --file incoming/<take>.mp4 --title "<title>" --show "<show>" --description "<one line>"   --content-type original --prices 5,15,50 --split 7000,2000,1000 --contributor-name "<name for the 20% share>"
+```
+It copies the master byte for byte to `public/clips/clipN.mp4`, makes the preview and poster with ffmpeg, adds the entry to `clips.json`, transcribes the clip with ElevenLabs, and runs `check-clips`. Add `--dry-run` to see the entry without writing anything. For gameplay, use `--content-type gameplay --publisher "<publisher>" --prices 5,15,0`.
+
+Then list the clip on-chain from `contracts/`, as the owner. `ListClips` skips clips that are already listed. `CONTRIBUTOR_ADDRESS` is used only for clips with a contributor share:
+```
+export SNIPPET_LICENSES_ADDRESS=0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20
+export RIGHTS_HOLDER_ADDRESS=<rights holder wallet>
+export CONTRIBUTOR_ADDRESS=<contributor wallet>
+forge script script/ListClips.s.sol:ListClips --rpc-url https://rpc.testnet.arc.network   --account <keystore> --sender <owner address> --broadcast
+cd ../web && npm run verify-onchain
+```
+A clip's rights holder and contributor can't be changed after it's listed. Check both addresses before broadcasting.
+
 ## How we use ElevenLabs
 
 Every clip's sound is transcribed with **ElevenLabs Speech to Text** (`scribe_v2`, word-level timestamps). The transcript drives three features:
