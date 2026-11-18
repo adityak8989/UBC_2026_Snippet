@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   useAccount,
@@ -17,6 +17,8 @@ import { parseEventLogs, parseUnits } from "viem";
 import { PurchaseReceipt } from "@/components/PurchaseReceipt";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SyncedCaptions } from "@/components/SyncedCaptions";
+import { getSpokenTranscript } from "@/lib/captions";
 import { getClipById } from "@/lib/clips";
 import { USDC_ADDRESS, USDC_DECIMALS, SNIPPET_LICENSES_ADDRESS, ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
 import { SnippetLicensesAbi, ERC20Abi } from "@/lib/abi";
@@ -69,6 +71,27 @@ function ClipSkeleton() {
 function ClipDetailContent() {
   const params = useParams<{ id: string }>();
   const clip = getClipById(params.id);
+  const transcript = clip ? getSpokenTranscript(clip.id) : undefined;
+
+  // "Search what's said" links here with ?t=<start>&end=<end>: cue the video up just before the quote.
+  const searchParams = useSearchParams();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const jumpStart = searchParams.has("t") ? Number(searchParams.get("t")) : NaN;
+  const jumpEnd = searchParams.has("end") ? Number(searchParams.get("end")) : jumpStart;
+  const highlight = useMemo(
+    () => (Number.isFinite(jumpStart) ? { start: jumpStart, end: Number.isFinite(jumpEnd) ? jumpEnd : jumpStart } : undefined),
+    [jumpStart, jumpEnd],
+  );
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !highlight) return;
+    const cue = () => {
+      video.currentTime = Math.max(0, highlight.start - 0.4);
+    };
+    if (video.readyState >= 1) cue();
+    else video.addEventListener("loadedmetadata", cue, { once: true });
+    return () => video.removeEventListener("loadedmetadata", cue);
+  }, [highlight]);
 
   const [selectedTier, setSelectedTier] = useState<UseType>("social");
 
@@ -316,6 +339,7 @@ function ClipDetailContent() {
             <div className="relative aspect-video overflow-hidden rounded-2xl border border-line bg-black">
               {/* Plays the light preview; the hashed master (clip.videoUrl) is only for download */}
               <video
+                ref={videoRef}
                 src={clip.previewUrl}
                 poster={clip.posterUrl || undefined}
                 controls
@@ -327,6 +351,8 @@ function ClipDetailContent() {
               />
               {!tierLicensed && <PreviewWatermark detail="Purchase to unlock the master" />}
             </div>
+
+            <SyncedCaptions transcript={transcript} videoRef={videoRef} highlight={highlight} />
 
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
