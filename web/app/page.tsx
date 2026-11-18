@@ -5,7 +5,8 @@ import { LicensesFeed } from "@/components/LicensesFeed";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { DEMO_CLIPS } from "@/lib/clips";
-import { USDC_ADDRESS, SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
+import { SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
+import { EXPLORER_URL } from "@/lib/licenses";
 
 export default function Home() {
   return (
@@ -16,10 +17,10 @@ export default function Home() {
         {/* Hero */}
         <div className="mx-auto flex max-w-2xl flex-col gap-3 text-center">
           <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
-            License Cinematic Moments Onchain
+            License the moment. Pay everyone in it.
           </h1>
           <p className="text-lg text-muted">
-            Pay in USDC on Arc testnet. Instant splits between creators and contributors in a single transaction, with no middleman holding funds and clearance anyone can verify.
+            Buy the rights to a 30 second clip in one checkout. The creator and everyone in the clip get paid the second you do.
           </p>
         </div>
 
@@ -132,33 +133,18 @@ export default function Home() {
 
         {/* Live feed of licenses sold, from QuickNode Streams */}
         <LicensesFeed />
-
-        {/* Info Footer Callout */}
-        <div className="flex flex-col items-start justify-between gap-4 rounded-2xl border border-line bg-surface p-6 text-xs text-muted sm:flex-row sm:items-center">
-          <div className="flex min-w-0 flex-col gap-1">
-            <p className="font-medium text-ink">Arc Testnet Details</p>
-            <p className="break-all">
-              Chain ID: <code className="font-mono">5042002</code> · USDC Token:{" "}
-              <code className="font-mono">{USDC_ADDRESS}</code>
-            </p>
-            {SNIPPET_LICENSES_ADDRESS !== "0x0000000000000000000000000000000000000000" ? (
-              <p className="break-all">
-                Contract: <code className="font-mono">{SNIPPET_LICENSES_ADDRESS}</code>
-              </p>
-            ) : (
-              <p className="text-primary">Contract address not yet set in .env</p>
-            )}
-          </div>
-          <a
-            href="https://faucet.circle.com"
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 rounded-lg border border-line bg-surface-2 px-3 py-1.5 font-medium text-ink hover:border-muted/60"
-          >
-            Get Testnet USDC ↗
-          </a>
-        </div>
       </main>
+
+      <footer className="border-t border-line py-6 text-center text-sm">
+        <a
+          href={`${EXPLORER_URL}/address/${SNIPPET_LICENSES_ADDRESS}`}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-muted transition-colors hover:text-ink"
+        >
+          Verified on Arc ↗
+        </a>
+      </footer>
     </div>
   );
 }
