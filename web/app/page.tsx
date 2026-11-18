@@ -10,6 +10,7 @@ import { REPO_URL } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { LISTED_CLIPS } from "@/lib/clips";
 import { getCreator } from "@/lib/creators";
+import { formatUsdc } from "@/lib/money";
 import { contentTypeLabel } from "@/lib/rights";
 import { SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { EXPLORER_URL } from "@/lib/licenses";
@@ -128,7 +129,7 @@ export default function Home() {
                             <div className="flex-1 text-center">
                               <div className="text-muted">{label}</div>
                               {price > 0 ? (
-                                <div className="font-bold text-ink">${price}</div>
+                                <div className="font-bold text-ink">{formatUsdc(price)}</div>
                               ) : (
                                 <div
                                   className="inline-flex items-center justify-center gap-1 font-semibold text-muted"

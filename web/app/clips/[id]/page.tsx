@@ -15,7 +15,7 @@ import { friendlyTxError } from "@/lib/errors";
 import { useIsClient } from "@/lib/useIsClient";
 import { parseEventLogs, parseUnits } from "viem";
 import { PurchaseReceipt } from "@/components/PurchaseReceipt";
-import { formatUsd } from "@/lib/money";
+import { arcPaymentLine, formatUsd, formatUsdc } from "@/lib/money";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SyncedCaptions } from "@/components/SyncedCaptions";
@@ -313,7 +313,7 @@ function ClipDetailContent() {
           : "Confirm in your wallet"
         : isBuyConfirming
           ? "Buying your license…"
-          : `Buy license · ${formatUsd(priceUsd)}`;
+          : `Buy license · ${formatUsdc(priceUsd)}`;
 
   // Back to a fresh "Buy license". The purchase spent the allowance, so read the fresh value before
   // clearing the old transactions; otherwise Buy could briefly show as ready.
@@ -441,7 +441,7 @@ function ClipDetailContent() {
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-sm font-semibold">{tier.name}</span>
                       {forSale ? (
-                        <span className="font-display text-base font-bold text-primary-text">{formatUsd(tier.price)}</span>
+                        <span className="font-display text-base font-bold text-primary-text">{formatUsdc(tier.price)}</span>
                       ) : (
                         <span className="text-xs font-semibold uppercase tracking-wider text-muted">Not available</span>
                       )}
@@ -495,7 +495,7 @@ function ClipDetailContent() {
                 </div>
               ) : !isConnected ? (
                 <div className="flex flex-col items-center gap-2 rounded-xl bg-surface-2 p-3">
-                  <span className="text-xs text-muted">Connect your wallet to buy with free test dollars</span>
+                  <span className="text-xs text-muted">Connect your wallet to buy with free testnet USDC</span>
                   <ConnectButton />
                 </div>
               ) : !isContractReady ? (
@@ -524,7 +524,7 @@ function ClipDetailContent() {
                     <div className="flex flex-col gap-1 rounded-xl border border-primary/40 bg-primary/10 p-4 text-sm" role="alert">
                       <p className="font-semibold">Not enough funds for this license.</p>
                       <p className="text-xs text-muted">
-                        You have {formattedBalance} and this license costs {formatUsd(priceUsd)}, plus a fee under 1¢.
+                        You have {formattedBalance} USDC and this license costs {formatUsdc(priceUsd)}, plus a fee under 1¢.
                       </p>
                       <a
                         href="https://faucet.circle.com"
@@ -532,7 +532,7 @@ function ClipDetailContent() {
                         rel="noreferrer"
                         className="mt-1 w-fit text-xs font-semibold text-primary-text underline"
                       >
-                        Get free test dollars at faucet.circle.com ↗
+                        Get free testnet USDC at faucet.circle.com ↗
                       </a>
                     </div>
                   )}
@@ -580,8 +580,8 @@ function ClipDetailContent() {
                       {!busy && (
                         <p className="text-center text-xs text-muted">
                           {needsApproval
-                            ? "Two wallet confirmations: allow the payment, then buy. Fees: about 1¢."
-                            : "One wallet confirmation. Fee: under 1¢."}
+                            ? "Two wallet confirmations: allow the payment, then buy."
+                            : "One wallet confirmation."}
                         </p>
                       )}
                     </div>
@@ -609,6 +609,11 @@ function ClipDetailContent() {
                     </div>
                   )}
                 </div>
+              )}
+              {clip.active !== false && (
+                <p className="text-center text-xs font-medium text-ink/80">
+                  {arcPaymentLine(isConnected && !!needsApproval)}
+                </p>
               )}
             </div>
           </div>

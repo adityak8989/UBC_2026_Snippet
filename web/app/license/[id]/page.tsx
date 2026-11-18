@@ -150,9 +150,20 @@ function Certificate() {
             </div>
           </div>
           {verification === "verified" ? (
-            <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-success/50 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
-              <span aria-hidden="true">✓</span> Matches the Arc record
-            </span>
+            txHash ? (
+              <a
+                href={`${EXPLORER_URL}/tx/${txHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-fit items-center gap-1.5 rounded-full border border-success/50 bg-success/10 px-3 py-1 text-xs font-semibold text-success hover:bg-success/20"
+              >
+                <span aria-hidden="true">✓</span> Verified on Arc ↗
+              </a>
+            ) : (
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-success/50 bg-success/10 px-3 py-1 text-xs font-semibold text-success">
+                <span aria-hidden="true">✓</span> Verified on Arc
+              </span>
+            )
           ) : verification === "verifying" ? (
             <span className="inline-flex w-fit animate-pulse rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted">
               Verifying on Arc…
@@ -204,7 +215,7 @@ function Certificate() {
             </span>
           </Field>
           <Field label="Price paid">
-            <span className="font-display text-lg font-bold">{formatUsdUnits(view.price)}</span>
+            <span className="font-display text-lg font-bold">{formatUsdUnits(view.price)} USDC</span>
           </Field>
           <Field label="Issued">{issuedAt} UTC</Field>
           <Field label="Terms">Nonexclusive, recorded permanently on Arc testnet</Field>

@@ -43,16 +43,26 @@ export function PurchaseReceipt({
         <div className="min-w-0">
           <p className="font-display text-base font-bold">License #{licenseId.toString()} purchased</p>
           <p className="text-xs text-muted">
-            You paid <span className="font-semibold text-ink">{formatUsdUnits(priceUnits)}</span> for a {useTypeLabel} license
+            You paid <span className="font-semibold text-ink">{formatUsdUnits(priceUnits)} USDC</span> for a {useTypeLabel} license
           </p>
         </div>
       </div>
 
-      {settledSeconds !== undefined && (
-        <p className="font-display text-sm font-semibold text-success">
-          Settled on Arc in {settledSeconds.toFixed(2)}s
-        </p>
-      )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {settledSeconds !== undefined && (
+          <p className="font-display text-sm font-semibold text-success">
+            Settled on Arc in {settledSeconds.toFixed(2)}s
+          </p>
+        )}
+        <a
+          href={`https://testnet.arcscan.app/tx/${txHash}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1 rounded-full border border-success/50 bg-success/10 px-2.5 py-0.5 text-xs font-semibold text-success hover:bg-success/20"
+        >
+          ✓ Verified on Arc ↗
+        </a>
+      </div>
 
       {/* The payment splitting into one line per payee */}
       <ul className="flex flex-col gap-2.5" aria-label="Payment split">
