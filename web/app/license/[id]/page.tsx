@@ -83,7 +83,7 @@ function Certificate() {
     return (
       <Notice title="Could not reach Arc testnet">
         The license could not be read right now. Check your connection and{" "}
-        <button type="button" onClick={() => refetch()} className="cursor-pointer text-primary underline">
+        <button type="button" onClick={() => refetch()} className="cursor-pointer text-primary-text underline">
           try again
         </button>
         .
@@ -152,7 +152,7 @@ function Certificate() {
               Could not reach Arc to verify
             </span>
           ) : (
-            <span className="inline-flex w-fit rounded-full border border-primary/50 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="inline-flex w-fit rounded-full border border-primary/50 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary-text">
               Does not match the record on Arc
             </span>
           )}
@@ -168,7 +168,7 @@ function Certificate() {
 
         <dl className="mt-6 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           <Field label="Use type">
-            <span className="rounded-md bg-primary/15 px-2 py-0.5 font-semibold text-primary">
+            <span className="rounded-md bg-primary/15 px-2 py-0.5 font-semibold text-primary-text">
               {USE_TYPE_NAMES[view.useType] ?? "Unknown"}
             </span>
           </Field>
@@ -204,7 +204,7 @@ function Certificate() {
                 href={`${EXPLORER_URL}/tx/${txHash}`}
                 target="_blank"
                 rel="noreferrer"
-                className="break-all font-mono text-xs text-primary underline"
+                className="break-all font-mono text-xs text-primary-text underline"
               >
                 {txHash} ↗
               </a>
@@ -215,7 +215,7 @@ function Certificate() {
                 href={`${EXPLORER_URL}/address/${SNIPPET_LICENSES_ADDRESS}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-primary underline"
+                className="text-xs text-primary-text underline"
               >
                 View the contract on ArcScan ↗
               </a>
@@ -277,7 +277,7 @@ function ShareActions() {
         <button
           type="button"
           onClick={() => navigator.share({ title: "Snippet license", url: window.location.href }).catch(() => {})}
-          className="flex-1 cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-bg hover:opacity-90"
+          className="flex-1 cursor-pointer rounded-xl bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
         >
           Share
         </button>
@@ -291,7 +291,7 @@ function Notice({ title, children }: { title: string; children: React.ReactNode 
     <div className="rounded-3xl border border-line bg-surface p-8 text-center">
       <h1 className="font-display text-xl font-bold">{title}</h1>
       <p className="mt-2 text-sm text-muted">{children}</p>
-      <Link href="/" className="mt-6 inline-block rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-bg">
+      <Link href="/" className="mt-6 inline-block rounded-xl bg-primary-strong px-4 py-2 text-sm font-semibold text-white">
         Browse clips
       </Link>
     </div>

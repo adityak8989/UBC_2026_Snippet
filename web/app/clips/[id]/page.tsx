@@ -198,7 +198,7 @@ function ClipDetailContent() {
         <p className="mb-6 text-muted">The clip you are looking for does not exist.</p>
         <Link
           href="/"
-          className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-bg hover:opacity-90"
+          className="rounded-xl bg-primary-strong px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
         >
           ← Back to Marketplace
         </Link>
@@ -280,7 +280,7 @@ function ClipDetailContent() {
 
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-                <span className="font-medium text-primary">{clip.show}</span>
+                <span className="font-medium text-primary-text">{clip.show}</span>
                 <span>•</span>
                 <span>{clip.duration}</span>
                 {clip.contributorName && (
@@ -348,7 +348,7 @@ function ClipDetailContent() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold">{tier.name}</span>
-                    <span className="font-display text-base font-bold text-primary">${tier.price} USDC</span>
+                    <span className="font-display text-base font-bold text-primary-text">${tier.price} USDC</span>
                   </div>
                   <p className="text-xs text-muted">{tier.desc}</p>
                 </button>
@@ -401,7 +401,7 @@ function ClipDetailContent() {
                     type="button"
                     onClick={() => switchChain({ chainId: ARC_TESTNET_CHAIN_ID })}
                     disabled={isSwitching}
-                    className="w-full cursor-pointer rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-bg hover:opacity-90 disabled:opacity-50"
+                    className="w-full cursor-pointer rounded-xl bg-primary-strong px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
                   >
                     {isSwitching ? "Check your wallet..." : "Switch to Arc Testnet"}
                   </button>
@@ -418,7 +418,7 @@ function ClipDetailContent() {
                         href="https://faucet.circle.com"
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-1 w-fit text-xs font-semibold text-primary underline"
+                        className="mt-1 w-fit text-xs font-semibold text-primary-text underline"
                       >
                         Get free testnet USDC at faucet.circle.com ↗
                       </a>
@@ -431,7 +431,7 @@ function ClipDetailContent() {
                       type="button"
                       onClick={handleApprove}
                       disabled={notEnoughUsdc || isApprovePending || isApproveConfirming}
-                      className="w-full cursor-pointer rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:opacity-50"
+                      className="w-full cursor-pointer rounded-xl border border-primary px-4 py-3 text-sm font-semibold text-primary-text transition-colors hover:bg-primary/10 disabled:opacity-50"
                     >
                       {isApprovePending
                         ? "Check Wallet to Approve..."
@@ -475,7 +475,7 @@ function ClipDetailContent() {
                       type="button"
                       onClick={handleBuy}
                       disabled={notEnoughUsdc || needsApproval || isBuyPending || isBuyConfirming}
-                      className="w-full cursor-pointer rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-bg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="w-full cursor-pointer rounded-xl bg-primary-strong px-4 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       {isBuyPending
                         ? "Check Wallet to Buy..."

@@ -157,7 +157,7 @@ export default function CheckPage() {
 
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted">Clip</p>
-                <Link href={`/clips/${match.clip.id}`} className="font-display text-lg font-bold hover:text-primary">
+                <Link href={`/clips/${match.clip.id}`} className="font-display text-lg font-bold hover:text-primary-text">
                   {match.clip.title}
                 </Link>
                 <p className="text-sm text-muted">{match.clip.show}</p>
@@ -169,7 +169,7 @@ export default function CheckPage() {
                   href={`${EXPLORER_URL}/address/${match.record.rightsHolder}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="break-all font-mono text-xs text-ink underline hover:text-primary"
+                  className="break-all font-mono text-xs text-ink underline hover:text-primary-text"
                 >
                   {match.record.rightsHolder}
                 </a>
@@ -202,7 +202,7 @@ export default function CheckPage() {
                           <span className="font-mono text-xs">
                             ${Number(formatUnits(l.price, USDC_DECIMALS)).toFixed(2)}
                           </span>
-                          <span aria-hidden="true" className="text-primary">
+                          <span aria-hidden="true" className="text-primary-text">
                             →
                           </span>
                         </Link>

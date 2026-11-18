@@ -1,7 +1,11 @@
 @import "tailwindcss";
 
-/* Snippet palette. Contrast on the dark background:
-   ink 17:1, muted 5.8:1, primary 6.1:1, success 8.3:1. Buttons use bg text on primary (6.1:1). */
+/* Snippet palette. Brand violet #7C5CFF reaches only 4.35:1 against both white and the dark
+   background, under WCAG AA (4.5:1) for normal text, so text uses two close shades:
+   - primary         #7C5CFF  logo, borders, rings, tints, focus (no text on it)
+   - primary-strong  #6E4CFF  filled buttons, with white text: 5.07:1
+   - primary-text    #A08CFF  violet text and links: 6.9:1 on bg, 6.2:1 on surface, 5.5:1 on surface-2
+   Others on bg: ink 17:1, muted 5.8:1, success 8.3:1. */
 @theme {
   --color-bg: #0f1115;
   --color-surface: #1a1d24;
@@ -9,7 +13,9 @@
   --color-line: #2b303b;
   --color-ink: #f5f3ee;
   --color-muted: #8a8f98;
-  --color-primary: #ff5a36;
+  --color-primary: #7c5cff;
+  --color-primary-strong: #6e4cff;
+  --color-primary-text: #a08cff;
   --color-success: #22c55e;
 }
 
@@ -30,8 +36,8 @@ body {
 }
 
 ::selection {
-  background: var(--color-primary);
-  color: var(--color-bg);
+  background: var(--color-primary-strong);
+  color: #ffffff;
 }
 
 /* Purchase receipt: each payout line fills, a dot travels along it, then the amount appears. */

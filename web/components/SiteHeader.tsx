@@ -25,7 +25,7 @@ export function SiteHeader({ active }: { active?: "check" } = {}) {
             href="/check"
             aria-current={onCheck ? "page" : undefined}
             className={`rounded-lg px-1 text-sm font-semibold transition-colors ${
-              onCheck ? "text-primary" : "text-muted hover:text-ink"
+              onCheck ? "text-primary-text" : "text-muted hover:text-ink"
             }`}
           >
             <span className="sm:hidden">Check License</span>

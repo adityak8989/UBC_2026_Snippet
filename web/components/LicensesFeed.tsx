@@ -162,7 +162,7 @@ export function LicensesFeed() {
       ) : isError ? (
         <p className="text-sm text-muted">
           The feed is unavailable right now.{" "}
-          <button type="button" onClick={() => refetch()} className="cursor-pointer text-primary underline">
+          <button type="button" onClick={() => refetch()} className="cursor-pointer text-primary-text underline">
             Try again
           </button>
         </p>
@@ -184,7 +184,7 @@ export function LicensesFeed() {
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="shrink-0 font-mono text-xs text-muted">#{item.licenseId.toString()}</span>
                     <span className="truncate font-semibold">{clip?.title ?? "Unlisted clip"}</span>
-                    <span className="shrink-0 rounded-md bg-primary/15 px-1.5 py-0.5 text-[11px] font-semibold text-primary">
+                    <span className="shrink-0 rounded-md bg-primary/15 px-1.5 py-0.5 text-[11px] font-semibold text-primary-text">
                       {USE_TYPE_NAMES[item.useType] ?? "Unknown"}
                     </span>
                   </div>
@@ -196,7 +196,7 @@ export function LicensesFeed() {
                       {usdc(item.platformAmount)} Snippet
                     </span>
                     <span className={fresh ? "font-semibold text-success" : ""}>{now > 0 ? timeAgo(item.time, now) : ""}</span>
-                    <span aria-hidden="true" className="text-primary">
+                    <span aria-hidden="true" className="text-primary-text">
                       →
                     </span>
                   </div>

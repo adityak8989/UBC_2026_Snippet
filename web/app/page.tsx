@@ -71,14 +71,14 @@ export default function Home() {
                   <div className="flex flex-1 flex-col justify-between gap-4 p-5">
                     <div className="flex flex-col gap-2">
                       <div className="flex items-center justify-between gap-2 text-xs font-medium text-muted">
-                        <span className="text-primary">{clip.show}</span>
+                        <span className="text-primary-text">{clip.show}</span>
                         {clip.contributorName && (
                           <span className="rounded bg-surface-2 px-2 py-0.5">{clip.contributorName}</span>
                         )}
                       </div>
 
                       <Link href={`/clips/${clip.id}`} className="w-fit">
-                        <h3 className="font-display text-lg font-semibold leading-snug transition-colors hover:text-primary">
+                        <h3 className="font-display text-lg font-semibold leading-snug transition-colors hover:text-primary-text">
                           {clip.title}
                         </h3>
                       </Link>
@@ -119,7 +119,7 @@ export default function Home() {
                       {/* Action Button */}
                       <Link
                         href={`/clips/${clip.id}`}
-                        className="w-full rounded-xl bg-primary px-4 py-2.5 text-center text-sm font-semibold text-bg transition-opacity hover:opacity-90"
+                        className="w-full rounded-xl bg-primary-strong px-4 py-2.5 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"
                       >
                         Select License & Buy →
                       </Link>
