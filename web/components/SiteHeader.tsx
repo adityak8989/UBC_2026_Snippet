@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount } from "wagmi";
+import { useIsClient } from "@/lib/useIsClient";
+import { FirstTimeGuide } from "./FirstTimeGuide";
 import { Logo } from "./Logo";
 
 // `active` highlights the current page in the nav. (A prop rather than usePathname, which would
@@ -9,10 +12,13 @@ import { Logo } from "./Logo";
 export function SiteHeader({ active }: { active?: "check" | "licenses" } = {}) {
   const onCheck = active === "check";
   const onLicenses = active === "licenses";
+  // The first time guide sits under Connect Wallet until a wallet is connected (or it is dismissed).
+  const isClient = useIsClient();
+  const { isConnected } = useAccount();
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg/85 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
+      <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" aria-label="Snippet home" className="rounded-lg">
             <Logo />
@@ -43,6 +49,7 @@ export function SiteHeader({ active }: { active?: "check" | "licenses" } = {}) {
           </Link>
           <ConnectButton showBalance={false} chainStatus="icon" accountStatus="address" />
         </nav>
+        {isClient && !isConnected && <FirstTimeGuide />}
       </div>
     </header>
   );
