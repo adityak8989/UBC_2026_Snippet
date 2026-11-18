@@ -85,8 +85,8 @@
       "contributorName": "SpaceLofi",
       "duration": "0:13",
       "videoUrl": "/clips/clip4.mp4",
-      "previewUrl": "/clips/clip4.mp4",
-      "posterUrl": "",
+      "previewUrl": "/clips/preview/clip4.mp4",
+      "posterUrl": "/clips/posters/clip4.jpg",
       "fileHash": "0x496935ee56fe54fd808ca2695d80b45d1c2012b905f038b7059657542b95ae02",
       "prices": {
         "editorial": 5,
@@ -112,8 +112,8 @@
       "contributorName": "SpaceLofi",
       "duration": "0:06",
       "videoUrl": "/clips/clip5.mp4",
-      "previewUrl": "/clips/clip5.mp4",
-      "posterUrl": "",
+      "previewUrl": "/clips/preview/clip5.mp4",
+      "posterUrl": "/clips/posters/clip5.jpg",
       "fileHash": "0xf99e2a4421068a9f1f28da6f53086947e908fc9e9e67c78cd4942152bd9f7280",
       "prices": {
         "editorial": 5,
@@ -139,8 +139,8 @@
       "contributorName": "SpaceLofi",
       "duration": "0:13",
       "videoUrl": "/clips/clip6.mp4",
-      "previewUrl": "/clips/clip6.mp4",
-      "posterUrl": "",
+      "previewUrl": "/clips/preview/clip6.mp4",
+      "posterUrl": "/clips/posters/clip6.jpg",
       "fileHash": "0xc9bedc47e1eaf31daa1f529caa5f0950d9910464f1618eda80fcec9eb26999f8",
       "prices": {
         "editorial": 5,
