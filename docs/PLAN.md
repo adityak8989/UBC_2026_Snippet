@@ -35,7 +35,7 @@ Update this list in the same commit that finishes each item.
 - [x] Live "licenses sold" feed on `/` ("Live via QuickNode Streams", Realtime updates)
 - [x] `/check` "Check License" page (hashes in the browser, matches the on-chain fileHash; licenses sold are read from QuickNode Streams' `license_events` first, with the contract as fallback)
 - [x] License certificate page `/license/[id]` and purchase receipt
-- [ ] `/licenses` page with downloads
+- [x] `/licenses` page with downloads (masters still public files; signed download gate is future work)
 - [ ] Feature freeze + full demo run on the deployed site
 
 **Wed: ElevenLabs (bounty: voice/audio central)**
