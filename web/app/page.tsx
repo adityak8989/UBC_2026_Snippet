@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { LicensesFeed } from "@/components/LicensesFeed";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
+import { QuoteSearch } from "@/components/QuoteSearch";
 import { REPO_URL } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { LISTED_CLIPS } from "@/lib/clips";
@@ -24,6 +25,9 @@ export default function Home() {
             Buy the rights to a 30 second clip in one checkout. The creator and everyone in the clip get paid the second you do.
           </p>
         </div>
+
+        {/* Find a quote across every clip's ElevenLabs transcript */}
+        <QuoteSearch />
 
         {/* Clip Marketplace Grid */}
         <section className="flex flex-col gap-6">
