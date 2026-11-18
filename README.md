@@ -6,6 +6,8 @@ A buyer picks a clip and a use type (Editorial, Social, or Commercial) and pays 
 
 Hackathon project (UBC, Nov 2026). **Testnet only.** The clips for sale are our teammate Riya's (SpaceLofi) own stream clips; the first three test clips are delisted.
 
+In this testnet demo, a team-held wallet receives SpaceLofi’s creator share; in production, each creator connects their own wallet.
+
 **Live demo: https://snippet-gamma.vercel.app** (Arc testnet; contract [`0xfc6a…1fe20`](https://testnet.arcscan.app/address/0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20))
 
 **The official contract is `0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20`. The app must keep using it** (its license #1 and listed clips live there; don't point the site at a new deployment).

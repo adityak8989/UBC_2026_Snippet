@@ -45,7 +45,7 @@ Update this list in the same commit that finishes each item.
 - [x] Certificate "Licensed words" with transcript hash
 - [x] SpaceLofi's 3 stream clips (clip-4..6) added: masters, transcripts, prices 5 / 15 / Commercial not for sale
 - [x] Previews + posters for clip-4..6 (720p max, audio kept for captions, faststart)
-- [ ] On-chain: ListClips (clip-4..6) and DelistClips (clip-1..3), then `npm run verify-onchain`
+- [x] On-chain: ListClips (clip-4..6) and DelistClips (clip-1..3); `npm run verify-onchain` passes
 - [ ] Site redeployed
 
 **Thu–Fri: ship**
