@@ -3,3 +3,5 @@
 !.env.example
 .next
 node_modules
+# Raw incoming clips (gitignored too; the masters the site serves are in public/clips)
+incoming
