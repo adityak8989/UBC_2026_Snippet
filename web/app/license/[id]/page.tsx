@@ -10,6 +10,7 @@ import { LogoMark } from "@/components/Logo";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SnippetLicensesAbi } from "@/lib/abi";
 import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS, USDC_DECIMALS } from "@/lib/arc";
+import { getTranscript } from "@/lib/captions";
 import { DEMO_CLIPS } from "@/lib/clips";
 import { fetchLicenseEvent, streamsConfigured } from "@/lib/licenseEvents";
 import { EXPLORER_URL, USE_TYPE_NAMES, findLicenseTx } from "@/lib/licenses";
@@ -93,6 +94,12 @@ function Certificate() {
   if (!view) return <CertificateSkeleton />;
 
   const clip = DEMO_CLIPS.find((c) => c.clipIdBytes32.toLowerCase() === view.clipId.toLowerCase());
+  // The words this license covers: only a transcript made from the exact master the license names.
+  const transcriptEntry = clip ? getTranscript(clip.id) : undefined;
+  const licensedWords =
+    transcriptEntry && transcriptEntry.transcript.fileHash.toLowerCase() === view.fileHash.toLowerCase()
+      ? transcriptEntry
+      : undefined;
   // "Matches the Arc record" only after the chain agrees: the license exists, its file hash is the clip's
   // master, and (when shown from the Streams index) the indexed row matches the chain record.
   const sameAsChain =
@@ -165,6 +172,24 @@ function Certificate() {
           </h1>
           {clip && <p className="mt-1 text-sm text-muted">{clip.show}</p>}
         </div>
+
+        {licensedWords && (
+          <figure className="mt-6 rounded-2xl border border-line p-4">
+            <figcaption className="text-xs uppercase tracking-wider text-muted">Licensed words</figcaption>
+            {licensedWords.transcript.hasSpeech ? (
+              <blockquote className="mt-2 font-display text-base leading-relaxed">
+                “{licensedWords.transcript.text}”
+              </blockquote>
+            ) : (
+              <p className="mt-2 text-sm text-muted">No spoken words in this clip.</p>
+            )}
+            <p className="mt-3 text-[11px] text-muted">
+              Transcribed from the master by ElevenLabs Speech to Text ({licensedWords.transcript.model}). Transcript
+              hash (SHA256):
+            </p>
+            <code className="mt-0.5 block break-all font-mono text-xs">{licensedWords.sha256}</code>
+          </figure>
+        )}
 
         <dl className="mt-6 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
           <Field label="Use type">
