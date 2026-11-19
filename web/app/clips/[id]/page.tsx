@@ -384,7 +384,7 @@ function ClipDetailContent() {
               <p className="text-muted">{clip.description}</p>
               {creator && (
                 <div className="mt-1">
-                  <CreatorBadge creator={creator} withBio />
+                  <CreatorBadge creator={creator} withBio href={`/creators/${creator.id}`} />
                 </div>
               )}
             </div>

@@ -3,6 +3,7 @@ import type { Clip } from "./clips";
 // Creators shown on the site. A clip names its creator with `"creator": "<id>"` in clips.json; the creator's
 // share is the clip's rights-holder share.
 export interface Creator {
+  id: string; // URL slug: /creators/<id>
   name: string;
   initials: string; // avatar fallback when there is no image
   avatar?: string; // square image under public/, e.g. a pixel-art SVG
@@ -11,6 +12,7 @@ export interface Creator {
 
 export const CREATORS: Record<string, Creator> = {
   spacelofi: {
+    id: "spacelofi",
     name: "SpaceLofi",
     initials: "SL",
     avatar: "/creators/spacelofi.svg",
