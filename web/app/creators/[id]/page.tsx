@@ -109,9 +109,14 @@ function CreatorContent() {
       )}
 
       <section aria-labelledby="creator-clips" className="flex flex-col gap-4">
-        <h2 id="creator-clips" className="font-display text-xl font-bold">
-          Clips by {creator.name}
-        </h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 id="creator-clips" className="font-display text-xl font-bold">
+            Clips by {creator.name}
+          </h2>
+          <Link href="/submit" className="text-sm font-medium text-primary-text hover:underline">
+            Submit a clip →
+          </Link>
+        </div>
         {activeClips.length === 0 ? (
           <p className="text-sm text-muted">No clips for sale right now.</p>
         ) : (

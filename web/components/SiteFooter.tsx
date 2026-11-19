@@ -33,6 +33,9 @@ export function SiteFooter() {
           <a href={REPO_URL} target="_blank" rel="noreferrer" className="font-medium hover:text-ink">
             Source code on GitHub ↗
           </a>
+          <a href="/submit" className="font-medium hover:text-ink">
+            Submit a clip
+          </a>
           <a href="/.well-known/security.txt" className="font-medium hover:text-ink">
             Security contact
           </a>
