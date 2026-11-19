@@ -137,6 +137,34 @@
       },
       "priceNotes": {
         "commercial": "Commercial use requires the game publisher’s permission"
+      },
+      "active": false
+    },
+    {
+      "id": "clip-7",
+      "clipIdBytes32": "0xf7487361e7ae4062ecc6c3ef6d563558bf5b03f1904cfd22ce2247fea7cb3636",
+      "title": "Clipping on the Blockchain",
+      "quote": "This app called Snippet. I've been using it all for my clipping content.",
+      "creator": "spacelofi",
+      "description": "SpaceLofi on the new apps bringing blockchain into everyday tools, and using Snippet for clipping content.",
+      "show": "Podcast",
+      "contentType": "original",
+      "speaker": "",
+      "contributorName": "Esteban (producer)",
+      "duration": "0:11",
+      "videoUrl": "/clips/clip7.mp4",
+      "previewUrl": "/clips/preview/clip7.mp4",
+      "posterUrl": "/clips/posters/clip7.jpg",
+      "fileHash": "0x4ba040c4a36f489b6c42e2e2e0bed8eb9386f95ac893efa64e9db1c6a5991a34",
+      "prices": {
+        "editorial": 5,
+        "social": 15,
+        "commercial": 50
+      },
+      "split": {
+        "rightsHolderBps": 7000,
+        "contributorBps": 2000,
+        "platformBps": 1000
       }
     },
     {

@@ -1,0 +1,200 @@
+{
+  "clipId": "clip-7",
+  "fileHash": "0x4ba040c4a36f489b6c42e2e2e0bed8eb9386f95ac893efa64e9db1c6a5991a34",
+  "model": "scribe_v2",
+  "keyterms": [
+    "Snippet"
+  ],
+  "language": "eng",
+  "languageProbability": 0.9700820446014404,
+  "hasSpeech": true,
+  "text": "One There's been some new upcoming apps that I've been using that have been incorporating blockchain technology, especially this app called Snippet. I've been using it all for my clipping content",
+  "words": [
+    {
+      "text": "One",
+      "start": 0.16,
+      "end": 0.28,
+      "type": "word"
+    },
+    {
+      "text": "There's",
+      "start": 1.04,
+      "end": 1.26,
+      "type": "word"
+    },
+    {
+      "text": "been",
+      "start": 1.28,
+      "end": 1.4,
+      "type": "word"
+    },
+    {
+      "text": "some",
+      "start": 1.44,
+      "end": 1.56,
+      "type": "word"
+    },
+    {
+      "text": "new",
+      "start": 1.62,
+      "end": 1.82,
+      "type": "word"
+    },
+    {
+      "text": "upcoming",
+      "start": 1.92,
+      "end": 2.52,
+      "type": "word"
+    },
+    {
+      "text": "apps",
+      "start": 2.64,
+      "end": 2.84,
+      "type": "word"
+    },
+    {
+      "text": "that",
+      "start": 2.86,
+      "end": 2.96,
+      "type": "word"
+    },
+    {
+      "text": "I've",
+      "start": 3,
+      "end": 3.08,
+      "type": "word"
+    },
+    {
+      "text": "been",
+      "start": 3.1,
+      "end": 3.22,
+      "type": "word"
+    },
+    {
+      "text": "using",
+      "start": 3.28,
+      "end": 3.64,
+      "type": "word"
+    },
+    {
+      "text": "that",
+      "start": 3.82,
+      "end": 3.92,
+      "type": "word"
+    },
+    {
+      "text": "have",
+      "start": 3.94,
+      "end": 4.08,
+      "type": "word"
+    },
+    {
+      "text": "been",
+      "start": 4.12,
+      "end": 4.42,
+      "type": "word"
+    },
+    {
+      "text": "incorporating",
+      "start": 4.84,
+      "end": 5.38,
+      "type": "word"
+    },
+    {
+      "text": "blockchain",
+      "start": 5.42,
+      "end": 5.86,
+      "type": "word"
+    },
+    {
+      "text": "technology,",
+      "start": 5.9,
+      "end": 6.5,
+      "type": "word"
+    },
+    {
+      "text": "especially",
+      "start": 6.78,
+      "end": 7.18,
+      "type": "word"
+    },
+    {
+      "text": "this",
+      "start": 7.22,
+      "end": 7.34,
+      "type": "word"
+    },
+    {
+      "text": "app",
+      "start": 7.4,
+      "end": 7.52,
+      "type": "word"
+    },
+    {
+      "text": "called",
+      "start": 7.58,
+      "end": 7.74,
+      "type": "word"
+    },
+    {
+      "text": "Snippet.",
+      "start": 7.82,
+      "end": 8.22,
+      "type": "word"
+    },
+    {
+      "text": "I've",
+      "start": 8.44,
+      "end": 8.54,
+      "type": "word"
+    },
+    {
+      "text": "been",
+      "start": 8.56,
+      "end": 8.66,
+      "type": "word"
+    },
+    {
+      "text": "using",
+      "start": 8.72,
+      "end": 8.92,
+      "type": "word"
+    },
+    {
+      "text": "it",
+      "start": 8.96,
+      "end": 9.14,
+      "type": "word"
+    },
+    {
+      "text": "all",
+      "start": 9.24,
+      "end": 9.38,
+      "type": "word"
+    },
+    {
+      "text": "for",
+      "start": 9.42,
+      "end": 9.5,
+      "type": "word"
+    },
+    {
+      "text": "my",
+      "start": 9.54,
+      "end": 9.64,
+      "type": "word"
+    },
+    {
+      "text": "clipping",
+      "start": 9.68,
+      "end": 9.92,
+      "type": "word"
+    },
+    {
+      "text": "content",
+      "start": 9.98,
+      "end": 10.38,
+      "type": "word"
+    }
+  ]
+}

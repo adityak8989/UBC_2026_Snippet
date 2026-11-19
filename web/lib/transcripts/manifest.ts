@@ -4,9 +4,11 @@ import type { Transcript } from "../captions";
 import t0 from "./clip-4.json";
 import t1 from "./clip-5.json";
 import t2 from "./clip-6.json";
+import t3 from "./clip-7.json";
 
 export const TRANSCRIPTS: Record<string, { sha256: `0x${string}`; transcript: Transcript }> = {
   "clip-4": { sha256: "0x7de0be7b505cde051481c9c2c6dec5ccbdab4f369d38d04eb78520dd7ba535ed", transcript: t0 as Transcript },
   "clip-5": { sha256: "0x1cf2ef5e969a736c2eebe88202589b97ad8632874ade6183d88f41edf8922e6b", transcript: t1 as Transcript },
   "clip-6": { sha256: "0x5b13a115542a4e72c1bae5898f7c623dcf23ef6db89ed68054a0adf8a0cee929", transcript: t2 as Transcript },
+  "clip-7": { sha256: "0x11b50b9fbf94289be6c77807e373033b0bbf453eedd5e9f07ee82402fc52bcc8", transcript: t3 as Transcript },
 };
