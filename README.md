@@ -128,7 +128,8 @@ QuickNode Streams is Snippet's data source for sales. Every `LicenseIssued` even
 - "Licensed N times" on clip cards and clip pages;
 - `/check`'s list of licenses sold;
 - My licenses;
-- each certificate's transaction link.
+- each certificate's transaction link;
+- **automated creator alerts** on Discord (below).
 
 It covers wallet and passkey purchases alike.
 
@@ -146,6 +147,7 @@ It covers wallet and passkey purchases alike.
 1. **Verifies the signature.** QuickNode sends `X-QN-Nonce`, `X-QN-Timestamp`, `X-QN-Signature`. We recompute `HMAC-SHA256(security token, nonce + timestamp + body)` and compare in constant time. A bad or missing signature gets 401, and without a configured token nothing is accepted.
 2. **Decodes and stores.** It collects logs from the payload, keeps only `LicenseIssued` from the official contract, decodes them with viem, and upserts into `license_events` on `license_id`. Retries and backfills can't create duplicates.
 3. **Lets QuickNode retry.** It answers 5xx when the database is unreachable, so QuickNode retries instead of dropping the sale.
+4. **Sends automated creator alerts.** For each row that is genuinely new (insert with duplicates ignored, so retries and backfills never alert twice), it posts to a Discord channel, for example: "💸 SpaceLofi just earned $3.50 and Esteban (producer) earned $1.00 from Clipping on the Blockchain (Editorial license) · Verified on Arc", with links to the certificate and the transaction ([`web/lib/discord.ts`](web/lib/discord.ts)). It runs after the response (`after()`), so Discord can never slow down or fail the stream; if Discord errors or `DISCORD_WEBHOOK_URL` is missing, it's logged and QuickNode still gets a 2xx.
 
 **Storage and reads.** [`supabase/license_events.sql`](supabase/license_events.sql) creates the table:
 - **Row Level Security:** anyone can read, and only the server's secret key can write.
@@ -161,6 +163,7 @@ It covers wallet and passkey purchases alike.
 | `SUPABASE_SECRET_KEY` | webhook only | **yes, never `NEXT_PUBLIC_`** |
 | `QUICKNODE_STREAMS_SECURITY_TOKEN` | webhook only | **yes** |
 | `QUICKNODE_ARC_RPC_URL` | server only (license verification, below) | **yes, never `NEXT_PUBLIC_`** |
+| `DISCORD_WEBHOOK_URL` | webhook only (creator alerts; optional) | **yes, never `NEXT_PUBLIC_`** |
 
 **Why it's core.** Reading every sale from the contract means one RPC call per license, and the public RPC refuses log searches over a few thousand blocks. Streams turns the chain into a push feed: each sale arrives once, is signed, and backfills from a fixed block. That makes the live feed, totals, and lookups instant and cheap. The contract stays the source of truth that every certificate is checked against.
 
