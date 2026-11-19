@@ -66,5 +66,5 @@ export const LISTING_RULES = {
     withContributor: { rightsHolder: 7000, contributor: 2000, platform: 1000 },
   },
   rightsConfirmationRequired: true,
-  approval: "A human reviews and lists every clip with npm run add-clip and the ListClips script. The bot only proposes; it never holds keys or lists clips.",
+  approval: "A human reviews every proposal, then lists the clip with our add clip and ListClips scripts. The bot only proposes; it never holds keys or lists clips.",
 } as const;
