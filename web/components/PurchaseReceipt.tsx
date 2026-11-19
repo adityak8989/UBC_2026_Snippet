@@ -5,7 +5,7 @@ import { formatUsdUnits } from "@/lib/money";
 import { Details } from "./Details";
 
 export interface Payout {
-  label: string; // "Paid to SpaceLofi", "Contributor", "Snippet"
+  label: string; // "Paid to SpaceLofi", "Paid to Esteban (producer)", "Snippet"
   units: bigint; // USDC units (6 decimals) from the LicenseIssued event
 }
 

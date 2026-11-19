@@ -23,7 +23,7 @@ import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SyncedCaptions } from "@/components/SyncedCaptions";
 import { CreatorBadge } from "@/components/CreatorBadge";
-import { creatorPayoutLabel, getCreator } from "@/lib/creators";
+import { contributorPayoutLabel, creatorPayoutLabel, getCreator } from "@/lib/creators";
 import { contentTypeLabel, rightsSummary } from "@/lib/rights";
 import { getSpokenTranscript } from "@/lib/captions";
 import { getClipById } from "@/lib/clips";
@@ -484,7 +484,7 @@ function ClipDetailContent() {
                 </div>
                 {clip.split.contributorBps > 0 && (
                   <div className="flex items-center justify-between">
-                    <span>Contributor ({clip.split.contributorBps / 100}%):</span>
+                    <span>{contributorPayoutLabel(clip)} ({clip.split.contributorBps / 100}%):</span>
                     <span className="font-medium text-ink">{formatUsd(contribAmount)}</span>
                   </div>
                 )}
@@ -561,7 +561,7 @@ function ClipDetailContent() {
                           payouts={[
                             { label: creatorPayoutLabel(clip), units: issued.rhAmount },
                             ...(issued.contribAmount > BigInt(0)
-                              ? [{ label: "Contributor", units: issued.contribAmount }]
+                              ? [{ label: contributorPayoutLabel(clip), units: issued.contribAmount }]
                               : []),
                             { label: "Snippet", units: issued.platformAmount },
                           ]}

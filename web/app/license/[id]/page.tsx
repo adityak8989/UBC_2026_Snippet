@@ -15,7 +15,7 @@ import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { getTranscript } from "@/lib/captions";
 import { fetchChainLicense } from "@/lib/chainApi";
 import { DEMO_CLIPS } from "@/lib/clips";
-import { creatorPayoutLabel, getCreator } from "@/lib/creators";
+import { contributorPayoutLabel, creatorPayoutLabel, getCreator } from "@/lib/creators";
 import { fetchLicenseEvent, streamsConfigured } from "@/lib/licenseEvents";
 import { EXPLORER_URL, USE_TYPE_NAMES, findLicenseTx } from "@/lib/licenses";
 
@@ -125,7 +125,7 @@ function Certificate() {
   });
   const payouts = [
     { label: creatorPayoutLabel(clip), units: view.rhAmount },
-    ...(view.contribAmount > BigInt(0) ? [{ label: "Contributor", units: view.contribAmount }] : []),
+    ...(view.contribAmount > BigInt(0) ? [{ label: contributorPayoutLabel(clip), units: view.contribAmount }] : []),
     { label: "Snippet", units: view.platformAmount },
   ];
 

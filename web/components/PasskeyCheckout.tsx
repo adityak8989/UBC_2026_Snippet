@@ -7,7 +7,7 @@ import { PurchaseReceipt } from "@/components/PurchaseReceipt";
 import { ERC20Abi } from "@/lib/abi";
 import { ARC_TESTNET_CHAIN_ID, USDC_ADDRESS } from "@/lib/arc";
 import type { Clip } from "@/lib/clips";
-import { creatorPayoutLabel } from "@/lib/creators";
+import { contributorPayoutLabel, creatorPayoutLabel } from "@/lib/creators";
 import { USE_TYPE_NAMES } from "@/lib/licenses";
 import { formatUsdUnits, formatUsdc } from "@/lib/money";
 import {
@@ -145,7 +145,7 @@ function PasskeyCheckoutInner({ clip, useType, priceUsd, priceUnits }: Props) {
             useTypeLabel={USE_TYPE_NAMES[purchase.useType] ?? ""}
             payouts={[
               { label: creatorPayoutLabel(clip), units: purchase.rhAmount },
-              ...(purchase.contribAmount > BigInt(0) ? [{ label: "Contributor", units: purchase.contribAmount }] : []),
+              ...(purchase.contribAmount > BigInt(0) ? [{ label: contributorPayoutLabel(clip), units: purchase.contribAmount }] : []),
               { label: "Snippet", units: purchase.platformAmount },
             ]}
             txHash={purchase.txHash}
