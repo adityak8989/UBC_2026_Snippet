@@ -115,7 +115,7 @@ QuickNode does two jobs:
 ```
 Arc testnet ──► QuickNode Stream (Logs + filter) ──► POST /api/streams (signed) ──► Supabase license_events
      │                                                                                   │ Realtime
-     │                         "Recently licensed", stats, "Licensed N times", /check list, My licenses ◄┘
+     │                         "Recently licensed", stats, "Licensed N times", /check list, My Licenses ◄┘
      │
      └──► QuickNode RPC (server only) ──► /api/chain/license/[id], /api/chain/clips, certificate preview image
                                            certificate "Verified on Arc", Check License fingerprint match
@@ -127,7 +127,7 @@ QuickNode Streams is Snippet's data source for sales. Every `LicenseIssued` even
 - the homepage "Recently licensed" strip and its stats;
 - "Licensed N times" on clip cards and clip pages;
 - `/check`'s list of licenses sold;
-- My licenses;
+- My Licenses;
 - each certificate's transaction link;
 - **automated creator alerts** on Discord (below).
 
@@ -213,7 +213,7 @@ There are two ways to buy on a clip page: a browser wallet (MetaMask and others)
 - **One confirmation:** the USDC approve (exact price) and `buyLicense` go in one user operation, so one passkey confirmation buys the license.
 - **Gas:** Circle Gas Station sponsors it (`paymaster: true`; testnet is sponsored automatically). If sponsorship is refused, the account pays gas in USDC instead.
 - **Funding:** the account only needs USDC for the price. When it has too little, the panel shows its address with a copy button and a faucet link.
-- **After purchase:** the receipt, certificate, live feed (QuickNode Streams) and My licenses work the same as for wallet purchases. With no wallet connected, My licenses shows the passkey account's licenses.
+- **After purchase:** the receipt, certificate, live feed (QuickNode Streams) and My Licenses work the same as for wallet purchases. With no wallet connected, My Licenses shows the passkey account's licenses.
 - **Storage:** only the passkey's public data (credential id, public key, username) is kept in the browser. The private key never leaves the device.
 
 Code: [`web/lib/passkey.ts`](web/lib/passkey.ts) and [`web/components/PasskeyCheckout.tsx`](web/components/PasskeyCheckout.tsx).

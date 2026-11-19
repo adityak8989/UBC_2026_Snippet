@@ -13,7 +13,7 @@ import { formatUsdUnits } from "@/lib/money";
 import { getSmartAccountAddress, loadPasskey, passkeyConfigured } from "@/lib/passkey";
 import { useIsClient } from "@/lib/useIsClient";
 
-// "My licenses": every license the connected wallet owns, newest first (license_events from QuickNode
+// "My Licenses": every license the connected wallet owns, newest first (license_events from QuickNode
 // Streams, the contract as fallback). The wallet is the account, so there is nothing to log in to.
 //
 // DEMO NOTE: "Download master" links straight to the clip's original file in public/clips, which anyone
@@ -28,7 +28,7 @@ export default function MyLicensesPage() {
       <SiteHeader active="licenses" />
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8">
         <div>
-          <h1 className="font-display text-2xl font-bold sm:text-3xl">My licenses</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">My Licenses</h1>
           <p className="mt-1 text-sm text-muted">Every license your wallet owns on Arc testnet.</p>
         </div>
         <LicenseList />

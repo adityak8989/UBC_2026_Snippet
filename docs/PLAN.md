@@ -50,7 +50,7 @@ Update this list in the same commit that finishes each item.
 
 **Wed: passkey checkout (Circle Modular Wallets + Gas Station)**
 - [x] Buy with passkey (no wallet needed): Circle smart account on Arc testnet, approve + buyLicense in one user operation, gas sponsored by Circle Gas Station; license #6 bought this way end to end
-- [x] Receipt, certificate, feed and My licenses work for passkey purchases
+- [x] Receipt, certificate, feed and My Licenses work for passkey purchases
 
 **Thu: creators**
 - [x] Creator page `/creators/[id]` (avatar, bio, active clips, earned, licenses sold, best seller); creator badges link there

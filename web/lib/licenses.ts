@@ -150,7 +150,7 @@ export async function fetchBuyerLicenses(
         })),
       };
     } catch (err) {
-      console.warn("My licenses: Supabase unavailable, reading the contract instead", err);
+      console.warn("My Licenses: Supabase unavailable, reading the contract instead", err);
     }
   }
   const all = await fetchAllLicensesFromChain(client);

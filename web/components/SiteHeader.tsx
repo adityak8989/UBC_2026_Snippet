@@ -51,7 +51,7 @@ export function SiteHeader({
             }`}
           >
             <span className="sm:hidden">Licenses</span>
-            <span className="hidden sm:inline">My licenses</span>
+            <span className="hidden sm:inline">My Licenses</span>
           </Link>
           {guide && isClient && status === "disconnected" && <FirstTimeGuide autoOpen={guide === "auto"} />}
           <ConnectButton showBalance={false} chainStatus="icon" accountStatus="address" />
