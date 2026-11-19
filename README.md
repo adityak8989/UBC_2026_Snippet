@@ -1,5 +1,20 @@
 # Snippet
 
+> ### For judges
+> - **Live site:** https://snippet-gamma.vercel.app (Arc testnet; free testnet USDC at [faucet.circle.com](https://faucet.circle.com))
+> - **Demo video:** (link coming)
+> - **Contract:** `SnippetLicenses` [`0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20`](https://testnet.arcscan.app/address/0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20), verified on the Arc testnet explorer
+> - **The 3 clips:** [The Final Push](https://snippet-gamma.vercel.app/clips/clip-4) (COD gameplay) · [Clipping on the Blockchain](https://snippet-gamma.vercel.app/clips/clip-7) (podcast, original) · [Outgunned by Marshals](https://snippet-gamma.vercel.app/clips/clip-6) (Valorant gameplay)
+>
+> **Five step tour**
+> 1. **Search:** on the homepage, type "valorant" or "just go do it". Quotes jump to the exact moment in the clip.
+> 2. **Captions:** play a clip. ElevenLabs captions highlight each word; "Transcript" shows the full text.
+> 3. **Passkey buy:** on Clipping on the Blockchain, use "Buy with passkey (no wallet needed)". One confirmation pays SpaceLofi 70%, Esteban (producer) 20% and Snippet 10% in one Arc transaction; Circle sponsors the gas.
+> 4. **Certificate and Check License:** open the certificate ("Verified on Arc", QR code, licensed words), download the master, and drop it on [Check License](https://snippet-gamma.vercel.app/check).
+> 5. **Live feed and Discord:** the sale shows up in "Recently licensed" within seconds through QuickNode Streams, and a Discord creator alert is posted.
+>
+> **Tracks and bounties:** Consumer Apps · [Best use of Arc](#how-we-use-arc) · [QuickNode Streams](#how-we-use-quicknode) · [ElevenLabs](#how-we-use-elevenlabs) · [Grok Bot](#snippet-ops-bot-grok)
+
 License short moments from streams and podcasts, paid in USDC on **Arc testnet**.
 
 A buyer picks a clip and a use type (Editorial, Social, or Commercial) and pays in USDC. The `SnippetLicenses` contract records the license on-chain: clip, file hash, buyer, price, use type, and timestamp. It pays the rights holder, the clip's contributor, and the platform in the same transaction. A live "licenses sold" feed and a "Check License" page read those on-chain events through QuickNode Streams.
