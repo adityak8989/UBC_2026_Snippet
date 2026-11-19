@@ -80,15 +80,31 @@ npx vercel@65.9.0 --scope snippet4 deploy --prod
 ```
 Environment variables are set in the Vercel project, not uploaded: `web/.vercelignore` keeps `.env*` files out of every deploy.
 
-## How we use QuickNode Streams
+## How we use QuickNode
 
-QuickNode Streams is Snippet's data source for sales. Every `LicenseIssued` event from the official contract flows through a Stream into our database. The live "Licenses sold" feed, the stats, `/check`'s "licenses sold" list, and each certificate's transaction link all read from that.
+QuickNode does two jobs:
+- **Streams (live sales):** every sale is pushed to us as it happens.
+- **RPC (license verification):** what the site shows is checked against the contract.
 
 ```
-Arc testnet ──► QuickNode Stream (Logs dataset + filter) ──► POST /api/streams (signed) ──► Supabase license_events
-                                                                                              │
-                         home feed + stats (Realtime) ◄──────── /check ◄──────── /license/[id] ◄┘
+Arc testnet ──► QuickNode Stream (Logs + filter) ──► POST /api/streams (signed) ──► Supabase license_events
+     │                                                                                   │ Realtime
+     │                         "Recently licensed", stats, "Licensed N times", /check list, My licenses ◄┘
+     │
+     └──► QuickNode RPC (server only) ──► /api/chain/license/[id], /api/chain/clips, certificate preview image
+                                           certificate "Verified on Arc", Check License fingerprint match
 ```
+
+### Streams: live sales
+
+QuickNode Streams is Snippet's data source for sales. Every `LicenseIssued` event from the official contract flows through a Stream into our database. These all read from it:
+- the homepage "Recently licensed" strip and its stats;
+- "Licensed N times" on clip cards and clip pages;
+- `/check`'s list of licenses sold;
+- My licenses;
+- each certificate's transaction link.
+
+It covers wallet and passkey purchases alike.
 
 **Stream configuration**
 | Setting | Value |
@@ -107,7 +123,7 @@ Arc testnet ──► QuickNode Stream (Logs dataset + filter) ──► POST /a
 
 **Storage and reads.** [`supabase/license_events.sql`](supabase/license_events.sql) creates the table:
 - **Row Level Security:** anyone can read, and only the server's secret key can write.
-- **Realtime:** the home feed updates within seconds of a sale.
+- **Realtime:** the homepage strip and the clip counts update within seconds of a sale (one shared subscription, [`web/lib/useSales.ts`](web/lib/useSales.ts)).
 - **Fallback:** pages fall back to reading the contract directly if Supabase is down.
 - **Verification:** a certificate only shows "Verified on Arc" after the chain agrees with the indexed row.
 
@@ -118,8 +134,23 @@ Arc testnet ──► QuickNode Stream (Logs dataset + filter) ──► POST /a
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | browser (read only) | no |
 | `SUPABASE_SECRET_KEY` | webhook only | **yes, never `NEXT_PUBLIC_`** |
 | `QUICKNODE_STREAMS_SECURITY_TOKEN` | webhook only | **yes** |
+| `QUICKNODE_ARC_RPC_URL` | server only (license verification, below) | **yes, never `NEXT_PUBLIC_`** |
 
 **Why it's core.** Reading every sale from the contract means one RPC call per license, and the public RPC refuses log searches over a few thousand blocks. Streams turns the chain into a push feed: each sale arrives once, is signed, and backfills from a fixed block. That makes the live feed, totals, and lookups instant and cheap. The contract stays the source of truth that every certificate is checked against.
+
+### RPC: license verification
+
+Reads that prove a license is real go through our QuickNode Arc testnet endpoint, on the server only ([`web/lib/serverChain.ts`](web/lib/serverChain.ts)):
+- **Certificates:** `/license/[id]` reads `getLicense` through `/api/chain/license/[id]`. It shows "Verified on Arc" only when the contract agrees with the indexed row and the file hash is the clip's master.
+- **Check License:** `/check` reads every clip's on-chain file hash through `/api/chain/clips` to match a dropped file's fingerprint.
+- **Preview cards:** each certificate's share preview image (`opengraph-image`) reads the license the same way.
+
+**Keeping the key private:**
+- `QUICKNODE_ARC_RPC_URL` is never `NEXT_PUBLIC_`, never logged, and never reaches the browser.
+- The module is `server-only`, so importing it from browser code fails the build.
+- Responses carry `x-snippet-rpc: quicknode` or `public`, never the URL.
+
+**Fallback:** if QuickNode is missing, slow (6 s timeout), or errors, the read falls back to the public Arc RPC (`https://rpc.testnet.arc.network`), so verification keeps working.
 
 ## Rights and adding a clip
 
