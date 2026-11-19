@@ -80,6 +80,32 @@ npx vercel@65.9.0 --scope snippet4 deploy --prod
 ```
 Environment variables are set in the Vercel project, not uploaded: `web/.vercelignore` keeps `.env*` files out of every deploy.
 
+## How we use Arc
+
+Every license is a transaction on **Arc testnet** (chain `5042002`) to one contract.
+
+**Contract:** `SnippetLicenses` at [`0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20`](https://testnet.arcscan.app/address/0xfc6a8dd5569ff53ca64065fac5eb17677ad1fe20), with its source verified on the explorer. Source: [`contracts/src/SnippetLicenses.sol`](contracts/src/SnippetLicenses.sol).
+
+**USDC is the gas token.** On Arc a buyer only ever holds dollars: the license price and the network fee are both paid in USDC. Fees are under 1¢ per transaction (about $0.007 to $0.009 for a purchase). The app pays through the 6 decimal USDC ERC-20 interface (`0x3600…0000`), never the 18 decimal native balance.
+
+**Atomic split.** `buyLicense(clipId, useType)` records the license and pays every party in the same transaction. The contract never holds funds; it pulls USDC from the buyer straight to each payee. Example: an Editorial license on clip-7 ("Clipping on the Blockchain", $5, split 70/20/10) pays:
+
+| Payee | Share | Amount |
+|---|---|---|
+| SpaceLofi (rights holder) | 70% | $3.50 |
+| Esteban (producer, contributor) | 20% | $1.00 |
+| Snippet (platform treasury) | 10% | $0.50 |
+
+All three transfers happen in one transaction, or none do.
+
+**File hash licenses.** Each clip is listed with the sha256 of its exact master file, and every `LicenseIssued` event and stored license carries that hash. A certificate proves which bytes were licensed, and `/check` matches a dropped file against those on-chain hashes. ElevenLabs transcripts add a second fingerprint for the licensed words.
+
+**Rights aware tiers.** Prices are per clip and per use type (Editorial, Social, Commercial). A price of 0 means not for sale, and `buyLicense` reverts with `PriceNotSet`. Gameplay clips use this for Commercial, because the game footage belongs to the publisher. `npm run check-clips` enforces it before anything is listed.
+
+**Foundry.** The contract is built and tested with Foundry: **27 tests**, including fuzzing of the split math, a reentrancy attack, zero price refusal, pause, and owner only admin. Deploy, list, update price and delist scripts all read the same `web/lib/clips.json` the site uses. Run `cd contracts && forge test`.
+
+**Circle passkeys and Gas Station.** Besides browser wallets, a buyer can pay with a passkey (Face ID, Touch ID, or a device PIN). A Circle Modular Wallets smart account on Arc sends the USDC approve and `buyLicense` as one user operation, and Circle Gas Station sponsors the gas. Details in [Passkey checkout](#passkey-checkout-circle-modular-wallets--gas-station).
+
 ## How we use QuickNode
 
 QuickNode does two jobs:
