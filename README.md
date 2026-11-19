@@ -238,6 +238,26 @@ npm run check-clips                   # transcript matches its master and its ha
 ```
 It reads `ELEVENLABS_API_KEY` from `web/.env.local`, and only on your laptop. The site never calls ElevenLabs.
 
+## Snippet Ops Bot (Grok)
+
+An AI operations bot (Grok) helps run Snippet from public, read only data feeds:
+
+| Feed | What it gives the bot |
+|---|---|
+| [`/api/ops/sales`](https://snippet-gamma.vercel.app/api/ops/sales) ([`.txt`](https://snippet-gamma.vercel.app/api/ops/sales.txt)) | Last 50 sales: clip, creator, use type, price, payouts to creator, contributor and platform, time, certificate and explorer links. `?since=<ISO time>` returns only newer sales. Includes a summary of today's totals per creator (America/Chicago). |
+| [`/api/ops/submissions`](https://snippet-gamma.vercel.app/api/ops/submissions) ([`.txt`](https://snippet-gamma.vercel.app/api/ops/submissions.txt)) | The latest "Submit a clip" proposals, each with its issues against our listing rules and the default prices and split, plus the rules themselves. |
+
+Data comes from QuickNode Streams' `license_events` (the contract through QuickNode RPC as fallback) and the `clip_submissions` table. Responses are cached for at most 30 seconds. The `.txt` versions read one line per item, for the bot.
+
+**What the bot does:**
+- writes creator payout notes ("SpaceLofi earned $3.50 and Esteban (producer) $1.00 from Clipping on the Blockchain");
+- writes a daily earnings report from the summary;
+- reviews new submissions into ready to approve listing proposals: title, content type, prices and split, per our rules.
+
+**What it never does:** it holds no keys, moves no money, and never lists clips. A human approves each proposal and lists it with `npm run add-clip` and `ListClips`, as in [Rights and adding a clip](#rights-and-adding-a-clip). Discord creator alerts on each sale come from the Streams webhook, not the bot.
+
+**Submissions:** creators propose clips at [`/submit`](https://snippet-gamma.vercel.app/submit) (no email or personal data). Create the table once by running [`supabase/clip_submissions.sql`](supabase/clip_submissions.sql) in the Supabase SQL Editor. RLS lets anyone insert a pending row and the public read; nobody can edit or delete through the public key.
+
 ## Notes
 - **USDC decimals on Arc:** the native gas balance uses 18 decimals; the USDC ERC-20 interface (`0x3600000000000000000000000000000000000000`) uses 6. The contract and app use only the 6-decimal ERC-20 interface.
 - **`npm audit` warnings:** you will see warnings about WalletConnect dependencies. The only fix npm offers is wagmi v3, which RainbowKit doesn't support yet, so we're staying on wagmi v2 for the hackathon.
