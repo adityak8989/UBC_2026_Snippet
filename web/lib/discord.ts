@@ -38,6 +38,23 @@ export function creatorAlertMessage(row: NewLicenseRow): string {
   ].join("\n");
 }
 
+/** Posts one plain message (used by the signed alert test). Returns Discord's HTTP status; never throws. */
+export async function sendDiscordTest(content: string): Promise<{ sent: boolean; status?: number; reason?: string }> {
+  const url = process.env.DISCORD_WEBHOOK_URL;
+  if (!url) return { sent: false, reason: "DISCORD_WEBHOOK_URL is not set" };
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ content, allowed_mentions: { parse: [] } }),
+      signal: AbortSignal.timeout(5_000),
+    });
+    return { sent: res.ok, status: res.status };
+  } catch (err) {
+    return { sent: false, reason: (err as Error)?.name ?? "error" };
+  }
+}
+
 /** Posts one Discord message per new license. Never throws. */
 export async function sendCreatorAlerts(rows: NewLicenseRow[]): Promise<void> {
   if (rows.length === 0) return;

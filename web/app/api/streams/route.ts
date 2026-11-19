@@ -5,7 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import { decodeEventLog } from "viem";
 import { SnippetLicensesAbi } from "@/lib/abi";
 import { SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
-import { sendCreatorAlerts } from "@/lib/discord";
+import { sendCreatorAlerts, sendDiscordTest } from "@/lib/discord";
 
 // QuickNode Streams webhook: Arc testnet logs -> license_events in Supabase.
 //
@@ -56,6 +56,13 @@ export async function POST(req: Request) {
     payload = JSON.parse(body);
   } catch {
     return NextResponse.json({ error: "Body is not JSON" }, { status: 400 });
+  }
+
+  // Signed alert test: {"snippetAlertTest": true}, signed with the Streams token like a real delivery, posts
+  // one test message to the Discord channel and returns Discord's status. Nothing is written.
+  if ((payload as { snippetAlertTest?: unknown })?.snippetAlertTest === true) {
+    const result = await sendDiscordTest("✅ Snippet alerts are connected");
+    return NextResponse.json({ alertTest: result });
   }
 
   // QuickNode nests logs differently depending on dataset and filter; collect every log object.
