@@ -101,6 +101,7 @@ export default function Home() {
                           {clip.title}
                         </h3>
                       </Link>
+                      {clip.quote && <p className="-mt-1 text-sm italic text-ink/80">“{clip.quote}”</p>}
 
                       <p className="line-clamp-2 text-sm text-muted">{clip.description}</p>
                       <LicensedCount clipIdBytes32={clip.clipIdBytes32} className="text-xs font-medium text-success" />

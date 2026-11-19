@@ -17,6 +17,9 @@ export interface Clip {
   id: string;
   clipIdBytes32: `0x${string}`;
   title: string;
+  // A short spoken line shown in italics under the title: copied word for word from the clip's ElevenLabs
+  // transcript (npm run check-clips verifies it). Omitted for clips without speech.
+  quote?: string;
   creator?: string; // key into CREATORS (lib/creators.ts); the creator receives the rights-holder share
   description: string;
   show: string;

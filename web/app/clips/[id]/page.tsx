@@ -380,6 +380,7 @@ function ClipDetailContent() {
               </div>
 
               <h1 className="font-display text-2xl font-bold sm:text-3xl">{clip.title}</h1>
+              {clip.quote && transcript && <p className="-mt-1 text-lg italic text-ink/80">“{clip.quote}”</p>}
               <p className="text-muted">{clip.description}</p>
               {creator && (
                 <div className="mt-1">

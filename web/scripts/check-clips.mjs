@@ -10,6 +10,10 @@ import { existsSync, readFileSync } from "node:fs";
 import { keccak256, toBytes } from "viem";
 
 const { clips } = JSON.parse(readFileSync(new URL("../lib/clips.json", import.meta.url), "utf8"));
+// Quotes are compared ignoring case, punctuation and [audio events].
+const normalize = (s) =>
+  s.toLowerCase().replace(/\[[^\]]*\]/g, " ").replace(/[’‘]/g, "'").replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ").trim();
+
 const manifest = readFileSync(new URL("../lib/transcripts/manifest.ts", import.meta.url), "utf8");
 let ok = true;
 
@@ -34,8 +38,11 @@ for (const clip of clips) {
   if (existsSync(transcriptFile)) {
     const bytes = readFileSync(transcriptFile);
     const hash = "0x" + createHash("sha256").update(bytes).digest("hex");
-    checks.transcript =
-      JSON.parse(bytes).fileHash === clip.fileHash && manifest.includes(`"${clip.id}": { sha256: "${hash}"`);
+    const transcript = JSON.parse(bytes);
+    checks.transcript = transcript.fileHash === clip.fileHash && manifest.includes(`"${clip.id}": { sha256: "${hash}"`);
+    if (clip.quote) checks.quote = transcript.hasSpeech && normalize(transcript.text).includes(normalize(clip.quote));
+  } else if (clip.quote) {
+    checks.quote = false; // a quote needs a transcript to come from
   }
   for (const [name, passed] of Object.entries(checks)) {
     if (!passed) ok = false;
