@@ -54,12 +54,20 @@ Update this list in the same commit that finishes each item.
 
 **Thu: creators**
 - [x] Creator page `/creators/[id]` (avatar, bio, active clips, earned, licenses sold, best seller); creator badges link there
-- [ ] Later: a "Submit a clip" form will live at `/submit` (not under `/creator`)
+- [x] "Submit a clip" form at `/submit` (saves to Supabase `clip_submissions`, RLS: anyone inserts, public reads; footer and creator page link to it)
+
+**Thu: ops, alerts, polish**
+- [x] Discord creator alerts from the Streams webhook (new licenses only; signed test from the server returned 204)
+- [x] Ops feeds for the Snippet Ops Grok bot: `/api/ops/sales` and `/api/ops/submissions` (JSON and `.txt`, cached at most 30 s)
+- [x] Server side QuickNode RPC for license verification (certificate, Check License, preview image), public Arc RPC as fallback
+- [x] Clip durations match the video player (enforced by `npm run check-clips`); every page checked at 390px phone width
+- [x] Podcast clip-7 "Clipping on the Blockchain" listed (70/20/10 with a contributor); clip-5 delisted
+- [x] README: How we use Arc, Snippet Ops Bot (Grok), For judges
 
 **Thu–Fri: ship**
 - [ ] Bug fixes from review
 - [ ] Demo video
-- [ ] Final README + Devpost text
+- [ ] Final README (done except the demo video link) + Devpost text
 - [ ] Submitted (by Fri 11:00 CST)
 
 ## Team
