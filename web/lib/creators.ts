@@ -14,7 +14,7 @@ export const CREATORS: Record<string, Creator> = {
     name: "SpaceLofi",
     initials: "SL",
     avatar: "/creators/spacelofi.svg",
-    bio: "Streams COD, Valorant and Monster Hunter",
+    bio: "Streams COD, Valorant and Monster Hunter. Talks clipping on podcasts.",
   },
 };
 
