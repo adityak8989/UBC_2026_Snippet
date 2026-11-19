@@ -35,8 +35,11 @@ export async function readArc<T>(read: (client: PublicClient) => Promise<T>): Pr
     try {
       return { value: await read(qn), via: "quicknode" };
     } catch (err) {
-      // Log the failure kind only; the error text could contain the endpoint URL.
-      console.warn("QuickNode RPC failed, falling back to the public Arc RPC:", (err as Error)?.name ?? "error");
+      // Log the failure kind and viem's short message with every URL stripped: the endpoint URL contains the key.
+      const short = String((err as { shortMessage?: string })?.shortMessage ?? "")
+        .replace(/https?:\/\/\S+/g, "<url>")
+        .slice(0, 200);
+      console.warn("QuickNode RPC failed, falling back to the public Arc RPC:", (err as Error)?.name ?? "error", short);
     }
   }
   return { value: await read(publicClient()), via: "public" };
