@@ -3,12 +3,12 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { usePublicClient, useReadContracts } from "wagmi";
+import { usePublicClient } from "wagmi";
 import { Details } from "@/components/Details";
 import { SiteHeader } from "@/components/SiteHeader";
+import { fetchChainClips } from "@/lib/chainApi";
 import { formatUsdUnits } from "@/lib/money";
-import { SnippetLicensesAbi } from "@/lib/abi";
-import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
+import { ARC_TESTNET_CHAIN_ID } from "@/lib/arc";
 import { DEMO_CLIPS } from "@/lib/clips";
 import { EXPLORER_URL, USE_TYPE_NAMES, fetchClipLicenses } from "@/lib/licenses";
 
@@ -30,15 +30,13 @@ export default function CheckPage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // The on-chain record of every listed clip: file hash and rights holder.
-  const { data: onchain, isLoading: clipsLoading, isError: clipsError } = useReadContracts({
-    contracts: DEMO_CLIPS.map((c) => ({
-      address: SNIPPET_LICENSES_ADDRESS,
-      abi: SnippetLicensesAbi,
-      functionName: "getClip" as const,
-      args: [c.clipIdBytes32] as const,
-      chainId: ARC_TESTNET_CHAIN_ID,
-    })),
+  // Read on the server through QuickNode (public Arc RPC fallback), in DEMO_CLIPS order.
+  const { data: chainClips, isLoading: clipsLoading, isError: clipsError } = useQuery({
+    queryKey: ["chainClips"],
+    queryFn: fetchChainClips,
+    retry: 1,
   });
+  const onchain = chainClips?.map((result) => ({ status: "success" as const, result }));
 
   const hash = status.kind === "done" ? status.hash : undefined;
   const matchIndex =

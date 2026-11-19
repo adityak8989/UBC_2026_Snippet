@@ -4,16 +4,16 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { usePublicClient, useReadContract } from "wagmi";
+import { usePublicClient } from "wagmi";
 import { zeroAddress } from "viem";
 import { LogoMark } from "@/components/Logo";
 import { CertificateQr } from "@/components/CertificateQr";
 import { Details } from "@/components/Details";
 import { SiteHeader } from "@/components/SiteHeader";
 import { formatUsdUnits } from "@/lib/money";
-import { SnippetLicensesAbi } from "@/lib/abi";
 import { ARC_TESTNET_CHAIN_ID, SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { getTranscript } from "@/lib/captions";
+import { fetchChainLicense } from "@/lib/chainApi";
 import { DEMO_CLIPS } from "@/lib/clips";
 import { creatorPayoutLabel, getCreator } from "@/lib/creators";
 import { fetchLicenseEvent, streamsConfigured } from "@/lib/licenseEvents";
@@ -39,13 +39,12 @@ function Certificate() {
   const validId = /^\d+$/.test(params.id) && params.id !== "0";
   const licenseId = validId ? BigInt(params.id) : BigInt(0);
 
-  const { data: license, isLoading, isError, refetch } = useReadContract({
-    address: SNIPPET_LICENSES_ADDRESS,
-    abi: SnippetLicensesAbi,
-    functionName: "getLicense",
-    args: [licenseId],
-    chainId: ARC_TESTNET_CHAIN_ID,
-    query: { enabled: validId },
+  // The contract's record, read on the server through QuickNode (public Arc RPC fallback).
+  const { data: license, isLoading, isError, refetch } = useQuery({
+    queryKey: ["chainLicense", params.id],
+    queryFn: () => fetchChainLicense(licenseId),
+    enabled: validId,
+    retry: 1,
   });
 
   // QuickNode Streams index first: fast, and it carries the tx hash. The chain read above verifies it.

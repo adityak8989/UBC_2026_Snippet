@@ -1,11 +1,9 @@
 import { ImageResponse } from "next/og";
 import { connection } from "next/server";
-import { createPublicClient, http, zeroAddress } from "viem";
-import { SnippetLicensesAbi } from "@/lib/abi";
-import { SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
 import { DEMO_CLIPS } from "@/lib/clips";
 import { getCreator } from "@/lib/creators";
 import { USE_TYPE_NAMES } from "@/lib/licenses";
+import { getLicenseOnChain } from "@/lib/serverChain";
 
 // Preview card for shared certificate links (/license/[id]): clip title, creator, use type, and
 // "Verified on Arc" only when the contract has the license and its file hash is the clip's master.
@@ -14,19 +12,11 @@ export const alt = "Snippet license certificate";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const RPC_URL = process.env.NEXT_PUBLIC_ARC_TESTNET_RPC_URL || "https://rpc.testnet.arc.network";
-
+// Read on the server through QuickNode, falling back to the public Arc RPC (lib/serverChain.ts).
 async function readLicense(id: string) {
-  if (!/^\d+$/.test(id) || id === "0") return undefined;
+  if (!/^\d{1,18}$/.test(id) || id === "0") return undefined;
   try {
-    const client = createPublicClient({ transport: http(RPC_URL) });
-    const license = await client.readContract({
-      address: SNIPPET_LICENSES_ADDRESS,
-      abi: SnippetLicensesAbi,
-      functionName: "getLicense",
-      args: [BigInt(id)],
-    });
-    return license.buyer === zeroAddress ? undefined : license;
+    return (await getLicenseOnChain(BigInt(id))).license ?? undefined;
   } catch {
     return undefined; // RPC down: show a plain card rather than fail the preview
   }
