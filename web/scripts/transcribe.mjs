@@ -6,6 +6,8 @@
 //   npm run transcribe -- clip-4 clip-5      transcribe these clips
 //   npm run transcribe -- --all              every clip in lib/clips.json
 //   npm run transcribe -- --manifest         only rebuild manifest.ts from the JSON files
+//   npm run transcribe -- clip-7 --keyterms Snippet,SpaceLofi   bias recognition toward these words
+//                                            (ElevenLabs keyterms; recorded in the transcript file)
 //
 // It sends the ORIGINAL master (public/<videoUrl>, the file whose sha256 is the clip's on-chain fileHash),
 // never the preview, and refuses if the file doesn't match clips.json.
@@ -32,7 +34,7 @@ function apiKey() {
   throw new Error("ELEVENLABS_API_KEY is not set (add it to web/.env.local)");
 }
 
-async function transcribe(clip, key) {
+async function transcribe(clip, key, keyterms = []) {
   const file = readFileSync(new URL(`../public${clip.videoUrl}`, import.meta.url));
   const fileHash = sha256(file);
   if (fileHash !== clip.fileHash) {
@@ -45,6 +47,7 @@ async function transcribe(clip, key) {
   form.append("timestamps_granularity", "word");
   form.append("tag_audio_events", "true");
   form.append("diarize", "false");
+  for (const term of keyterms) form.append("keyterms", term);
 
   const res = await fetch(API_URL, { method: "POST", headers: { "xi-api-key": key }, body: form });
   if (!res.ok) {
@@ -68,6 +71,7 @@ async function transcribe(clip, key) {
     clipId: clip.id,
     fileHash, // sha256 of the master that was transcribed (same as the on-chain fileHash)
     model: MODEL_ID,
+    ...(keyterms.length ? { keyterms } : {}),
     language: stt.language_code ?? null,
     languageProbability: stt.language_probability ?? null,
     hasSpeech: words.some((w) => w.type === "word"),
@@ -110,7 +114,10 @@ function writeManifest() {
   console.log(`manifest.ts: ${files.length} transcript(s)`);
 }
 
-const args = process.argv.slice(2);
+const rawArgs = process.argv.slice(2);
+const ktIndex = rawArgs.indexOf("--keyterms");
+const keyterms = ktIndex >= 0 ? (rawArgs[ktIndex + 1] ?? "").split(",").map((t) => t.trim()).filter(Boolean) : [];
+const args = ktIndex >= 0 ? rawArgs.filter((_, i) => i !== ktIndex && i !== ktIndex + 1) : rawArgs;
 mkdirSync(OUT_DIR, { recursive: true });
 
 if (!args.includes("--manifest")) {
@@ -124,7 +131,7 @@ if (!args.includes("--manifest")) {
   for (const id of ids) {
     const clip = clips.find((c) => c.id === id);
     if (!clip) throw new Error(`${id}: not in lib/clips.json`);
-    await transcribe(clip, key);
+    await transcribe(clip, key, keyterms);
   }
 }
 writeManifest();
