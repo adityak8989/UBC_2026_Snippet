@@ -8,6 +8,7 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { keccak256, toBytes } from "viem";
+import { durationLabel, mp4DurationSeconds } from "./mp4-duration.mjs";
 
 const { clips } = JSON.parse(readFileSync(new URL("../lib/clips.json", import.meta.url), "utf8"));
 // Quotes are compared ignoring case, punctuation and [audio events].
@@ -28,6 +29,14 @@ for (const clip of clips) {
     previewAndPoster:
       clip.previewUrl !== clip.videoUrl &&
       [clip.previewUrl, clip.posterUrl].every((url) => url && existsSync(new URL(`../public${url}`, import.meta.url))),
+    // The label must equal what the player shows for the preview: whole seconds rounded down.
+    duration: (() => {
+      try {
+        return clip.duration === durationLabel(mp4DurationSeconds(new URL(`../public${clip.previewUrl}`, import.meta.url)));
+      } catch {
+        return false;
+      }
+    })(),
     priceNotes: Object.entries(clip.prices).every(([use, price]) => price > 0 || !!clip.priceNotes?.[use]),
     rights:
       clip.contentType === "original"
@@ -46,7 +55,13 @@ for (const clip of clips) {
   }
   for (const [name, passed] of Object.entries(checks)) {
     if (!passed) ok = false;
-    console.log(`${passed ? "ok  " : "FAIL"} ${clip.id} ${name}${name === "fileHash" && !passed ? ` (file is ${sha})` : ""}`);
+    const hint =
+      name === "fileHash" && !passed
+        ? ` (file is ${sha})`
+        : name === "duration" && !passed
+          ? ` (player shows ${(() => { try { return durationLabel(mp4DurationSeconds(new URL(`../public${clip.previewUrl}`, import.meta.url))); } catch { return "?"; } })()})`
+          : "";
+    console.log(`${passed ? "ok  " : "FAIL"} ${clip.id} ${name}${hint}`);
   }
 }
 

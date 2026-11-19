@@ -91,7 +91,8 @@ const id = `clip-${n}`;
 const ffprobe = findTool("ffprobe");
 const seconds = Number(run(ffprobe, ["-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", src]).trim());
 const hasAudio = run(ffprobe, ["-v", "error", "-select_streams", "a", "-show_entries", "stream=index", "-of", "csv=p=0", src]).trim() !== "";
-const duration = `${Math.floor(Math.round(seconds) / 60)}:${String(Math.round(seconds) % 60).padStart(2, "0")}`;
+// Whole seconds rounded down, like the video player shows (check-clips enforces it against the preview).
+const duration = `${Math.floor(Math.floor(seconds) / 60)}:${String(Math.floor(seconds) % 60).padStart(2, "0")}`;
 
 const clip = {
   id,
