@@ -39,7 +39,12 @@ export async function readArc<T>(read: (client: PublicClient) => Promise<T>): Pr
       const short = String((err as { shortMessage?: string })?.shortMessage ?? "")
         .replace(/https?:\/\/\S+/g, "<url>")
         .slice(0, 200);
-      console.warn("QuickNode RPC failed, falling back to the public Arc RPC:", (err as Error)?.name ?? "error", short);
+      // The HTTP status (a number, no secret) tells an auth or allowlist refusal (401/403) from a bad path (404).
+      let status: unknown;
+      for (let e = err as { status?: unknown; cause?: unknown } | undefined; e && status === undefined; e = e.cause as typeof e) {
+        status = e.status;
+      }
+      console.warn("QuickNode RPC failed, falling back to the public Arc RPC:", (err as Error)?.name ?? "error", short, `status=${String(status ?? "none")}`);
     }
   }
   return { value: await read(publicClient()), via: "public" };
