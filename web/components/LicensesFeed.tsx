@@ -2,10 +2,10 @@
 
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
-import { DEMO_CLIPS } from "@/lib/clips";
+import { DEMO_CLIPS, LISTED_CLIPS } from "@/lib/clips";
 import { USE_TYPE_NAMES } from "@/lib/licenses";
 import { formatUsdUnits } from "@/lib/money";
-import { useSales } from "@/lib/useSales";
+import { licensedTimesLabel, useSales } from "@/lib/useSales";
 
 // Homepage "Recently licensed": a small stats row and the last 5 sales, one line each, live from QuickNode
 // Streams (lib/useSales.ts). Each line links to that license's certificate.
@@ -48,6 +48,17 @@ export function LicensesFeed() {
   const { data, isLoading, isError, refetch } = useSales();
   const items = data?.items ?? [];
   const totalToCreators = items.reduce((sum, i) => sum + i.rhAmount + i.contribAmount, BigInt(0));
+  // Most licensed clip that is still for sale (ties: homepage order).
+  const mostLicensed = (() => {
+    const counts = new Map<string, number>();
+    for (const i of items) counts.set(i.clipId.toLowerCase(), (counts.get(i.clipId.toLowerCase()) ?? 0) + 1);
+    let best: { title: string; id: string; n: number } | undefined;
+    for (const c of LISTED_CLIPS) {
+      const n = counts.get(c.clipIdBytes32.toLowerCase()) ?? 0;
+      if (n > 0 && (!best || n > best.n)) best = { title: c.title, id: c.id, n };
+    }
+    return best;
+  })();
   const blockNote = data?.blockTime
     ? data.blockTime.basis === "licenses"
       ? "Average Arc block time, measured across indexed sales"
@@ -76,13 +87,19 @@ export function LicensesFeed() {
       </div>
 
       {/* Stats: one small row */}
-      <dl className="grid grid-cols-3 gap-2 text-center sm:text-left">
+      <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Stat label="Paid to creators" value={data ? formatUsdUnits(totalToCreators) : undefined} />
         <Stat label="Licenses sold" value={data ? items.length.toString() : undefined} />
         <Stat
           label="Settles in about"
           value={data ? (data.blockTime ? `${data.blockTime.seconds.toFixed(1)}s` : "n/a") : undefined}
           title={blockNote}
+        />
+        <Stat
+          label="Most licensed"
+          value={data ? (mostLicensed ? mostLicensed.title : "None yet") : undefined}
+          note={mostLicensed ? licensedTimesLabel(mostLicensed.n) : undefined}
+          href={mostLicensed ? `/clips/${mostLicensed.id}` : undefined}
         />
       </dl>
 
@@ -137,12 +154,25 @@ export function LicensesFeed() {
   );
 }
 
-function Stat({ label, value, title }: { label: string; value?: string; title?: string }) {
+function Stat({ label, value, title, note, href }: { label: string; value?: string; title?: string; note?: string; href?: string }) {
+  const shown =
+    value === undefined ? (
+      <span className="inline-block h-5 w-12 animate-pulse rounded bg-line align-middle" />
+    ) : (
+      <span className="block truncate">{value}</span>
+    );
   return (
-    <div className="rounded-lg bg-surface px-3 py-2" title={title}>
-      <dt className="text-[11px] uppercase tracking-wider text-muted">{label}</dt>
-      <dd className="font-display text-base font-bold">
-        {value === undefined ? <span className="inline-block h-5 w-12 animate-pulse rounded bg-line align-middle" /> : value}
+    <div className="min-w-0 rounded-lg bg-surface px-3 py-2" title={title ?? (href ? value : undefined)}>
+      <dt className="truncate text-[11px] uppercase tracking-wider text-muted">{label}</dt>
+      <dd className="min-w-0 font-display text-base font-bold">
+        {href ? (
+          <Link href={href} className="hover:text-primary-text">
+            {shown}
+          </Link>
+        ) : (
+          shown
+        )}
+        {note && <span className="block font-sans text-[11px] font-medium text-success">{note}</span>}
       </dd>
     </div>
   );
