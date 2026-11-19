@@ -240,7 +240,7 @@ It reads `ELEVENLABS_API_KEY` from `web/.env.local`, and only on your laptop. Th
 
 ## Snippet Ops Bot (Grok)
 
-An AI operations bot (Grok) helps run Snippet from public, read only data feeds:
+**Snippet Ops** is a Grok bot that helps run Snippet from public, read only data feeds. It reads sales and submissions, emails creators what they earned, and turns `/submit` proposals into listing proposals for a human to approve.
 
 | Feed | What it gives the bot |
 |---|---|
@@ -250,9 +250,9 @@ An AI operations bot (Grok) helps run Snippet from public, read only data feeds:
 Data comes from QuickNode Streams' `license_events` (the contract through QuickNode RPC as fallback) and the `clip_submissions` table. Responses are cached for at most 30 seconds. The `.txt` versions read one line per item, for the bot.
 
 **What the bot does:**
-- writes creator payout notes ("SpaceLofi earned $3.50 and Esteban (producer) $1.00 from Clipping on the Blockchain");
-- writes a daily earnings report from the summary;
-- reviews new submissions into ready to approve listing proposals: title, content type, prices and split, per our rules.
+- **Creator payout notes:** emails each payout ("SpaceLofi earned $3.50 and Esteban (producer) $1.00 from Clipping on the Blockchain") to a demo inbox that stands in for the creators' inboxes.
+- **Daily earnings report:** emails a summary of the day's sales and earnings per creator to the same demo inbox. It's scheduled every day at 8 PM Central (America/Chicago), matching the feed's daily summary.
+- **Listing proposals:** reviews new `/submit` proposals into ready to approve listing proposals (title, content type, prices and split), per our rules.
 
 **What it never does:** it holds no keys, moves no money, and never lists clips. A human approves each proposal and lists it with `npm run add-clip` and `ListClips`, as in [Rights and adding a clip](#rights-and-adding-a-clip). Discord creator alerts on each sale come from the Streams webhook, not the bot.
 
