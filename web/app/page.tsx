@@ -10,7 +10,7 @@ import { RightsExplainer } from "@/components/RightsExplainer";
 import { REPO_URL } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { LISTED_CLIPS } from "@/lib/clips";
-import { getCreator } from "@/lib/creators";
+import { contributorShortName, getCreator } from "@/lib/creators";
 import { formatUsdc } from "@/lib/money";
 import { contentTypeLabel } from "@/lib/rights";
 import { SNIPPET_LICENSES_ADDRESS } from "@/lib/arc";
@@ -113,7 +113,7 @@ export default function Home() {
                         <span>Royalty Split:</span>
                         <span className="font-medium text-ink">
                           {contribPercent > 0
-                            ? `${rhPercent}% ${creator?.name ?? "Creator"} · ${contribPercent}% Contributor · ${platformPercent}% Snippet`
+                            ? `${rhPercent}% ${creator?.name ?? "Creator"} · ${contribPercent}% ${contributorShortName(clip)} · ${platformPercent}% Snippet`
                             : `${rhPercent}% ${creator?.name ?? "Creator"} · ${platformPercent}% Snippet`}
                         </span>
                       </div>
