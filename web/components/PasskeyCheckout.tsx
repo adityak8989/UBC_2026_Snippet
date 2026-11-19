@@ -82,7 +82,7 @@ function PasskeyCheckoutInner({ clip, useType, priceUsd, priceUnits }: Props) {
           ? "The passkey prompt was closed. Try again when you're ready."
           : mode === "login"
             ? "Could not sign in with a passkey. If you don't have one yet, create one."
-            : "Could not create a passkey. Passkeys work on localhost in this demo; try again there.",
+            : "Could not create a passkey. Try again, or use a different username.",
       );
     } finally {
       setBusy(null);

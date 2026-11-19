@@ -19,6 +19,7 @@ import {
   toWebAuthnCredential,
   WebAuthnMode,
 } from "@circle-fin/modular-wallets-core";
+import { useSyncExternalStore } from "react";
 import { createPublicClient, encodeFunctionData, parseEventLogs, type Hex } from "viem";
 import { createBundlerClient, toWebAuthnAccount } from "viem/account-abstraction";
 import { arcTestnet } from "viem/chains";
@@ -52,12 +53,18 @@ export function loadPasskey(): StoredPasskey | undefined {
   }
 }
 
+// Components that only need to know whether a passkey is signed in (the clip page) subscribe here, so
+// they update the moment the passkey checkout signs in or out.
+const listeners = new Set<() => void>();
+const notify = () => listeners.forEach((l) => l());
+
 function savePasskey(p: StoredPasskey) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
   } catch {
     // storage blocked: the buyer signs in again next time
   }
+  notify();
 }
 
 export function forgetPasskey() {
@@ -66,6 +73,25 @@ export function forgetPasskey() {
   } catch {
     // nothing to do
   }
+  notify();
+}
+
+function subscribePasskey(onChange: () => void) {
+  listeners.add(onChange);
+  window.addEventListener("storage", onChange); // other tabs
+  return () => {
+    listeners.delete(onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+/** True when a passkey account is signed in on this device (false on the server and before hydration). */
+export function usePasskeySignedIn(): boolean {
+  return useSyncExternalStore(
+    subscribePasskey,
+    () => passkeyConfigured && loadPasskey() !== undefined,
+    () => false,
+  );
 }
 
 // ---------------------------------------------------------------- sign up / sign in

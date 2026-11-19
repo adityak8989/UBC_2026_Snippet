@@ -15,6 +15,7 @@ import { friendlyTxError } from "@/lib/errors";
 import { useIsClient } from "@/lib/useIsClient";
 import { parseEventLogs, parseUnits } from "viem";
 import { PasskeyCheckout } from "@/components/PasskeyCheckout";
+import { usePasskeySignedIn } from "@/lib/passkey";
 import { PurchaseReceipt } from "@/components/PurchaseReceipt";
 import { arcPaymentLine, formatUsd, formatUsdc } from "@/lib/money";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
@@ -107,6 +108,9 @@ function ClipDetailContent() {
   const isConnected = isClient && walletConnected;
   const { switchChain, isPending: isSwitching } = useSwitchChain();
   const wrongNetwork = isConnected && chainId !== ARC_TESTNET_CHAIN_ID;
+  // Passkey signed in and no wallet: the passkey checkout below is the path, so the wallet box shrinks to
+  // one line. (Its "Not enough funds" box and buy button only appear once a wallet connects.)
+  const passkeySignedIn = usePasskeySignedIn();
 
   // Price calculations
   const priceUsd = clip ? clip.prices[selectedTier] : 0;
@@ -493,6 +497,11 @@ function ClipDetailContent() {
               {clip.active === false ? (
                 <div className="rounded-xl bg-surface-2 p-4 text-center text-sm text-muted">
                   This clip is no longer for sale. Licenses already sold for it stay valid.
+                </div>
+              ) : !isConnected && passkeySignedIn ? (
+                <div className="flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-2">
+                  <span className="text-xs text-muted">Buying with your passkey below. Prefer a browser wallet?</span>
+                  <ConnectButton label="Connect" showBalance={false} />
                 </div>
               ) : !isConnected ? (
                 <div className="flex flex-col items-center gap-2 rounded-xl bg-surface-2 p-3">
