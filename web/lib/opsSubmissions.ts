@@ -133,8 +133,9 @@ export function opsSubmissionsText(data: OpsSubmissions): string {
     for (const s of data.submissions) {
       const show = s.publisher ? `${s.show} (${s.publisher})` : s.show;
       const issues = s.issues.length ? `issues: ${s.issues.join(" ")}` : "ready to propose";
+      const rights = s.rightsConfirmed ? "rights confirmed" : "rights NOT confirmed";
       lines.push(
-        `#${s.id} · ${when(s.submittedAt)} · ${s.status} · "${s.title}" by ${s.creatorName} · ${show} · ${s.contentType === "gameplay" ? "Gameplay" : "Original"} · ${s.lengthSeconds} s · ${s.videoUrl} · ${issues}`,
+        `#${s.id} · ${when(s.submittedAt)} · ${s.status} · "${s.title}" by ${s.creatorName} · ${show} · ${s.contentType === "gameplay" ? "Gameplay" : "Original"} · ${s.lengthSeconds} s · ${rights} · ${s.videoUrl} · ${issues}`,
       );
     }
   }
