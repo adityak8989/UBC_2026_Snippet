@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LicensedCount } from "@/components/LicensedCount";
 import { LicensesFeed } from "@/components/LicensesFeed";
 import { PreviewWatermark } from "@/components/PreviewWatermark";
 import { CreatorBadge } from "@/components/CreatorBadge";
@@ -102,6 +103,7 @@ export default function Home() {
                       </Link>
 
                       <p className="line-clamp-2 text-sm text-muted">{clip.description}</p>
+                      <LicensedCount clipIdBytes32={clip.clipIdBytes32} className="text-xs font-medium text-success" />
                     </div>
 
                     <div className="flex flex-col gap-3 border-t border-line pt-3">

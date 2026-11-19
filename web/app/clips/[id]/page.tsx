@@ -14,6 +14,7 @@ import {
 import { friendlyTxError } from "@/lib/errors";
 import { useIsClient } from "@/lib/useIsClient";
 import { parseEventLogs, parseUnits } from "viem";
+import { LicensedCount } from "@/components/LicensedCount";
 import { PasskeyCheckout } from "@/components/PasskeyCheckout";
 import { usePasskeySignedIn } from "@/lib/passkey";
 import { PurchaseReceipt } from "@/components/PurchaseReceipt";
@@ -369,6 +370,7 @@ function ClipDetailContent() {
                 <span className="font-medium text-primary-text">{clip.show}</span>
                 <span>•</span>
                 <span>{clip.duration}</span>
+                <LicensedCount clipIdBytes32={clip.clipIdBytes32} className="font-medium text-success before:mr-2 before:text-muted before:content-['•']" />
                 {clip.contributorName && !creator && (
                   <>
                     <span>•</span>
