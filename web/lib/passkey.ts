@@ -126,10 +126,31 @@ function clients(passkey: StoredPasskey) {
   return { client, transport, owner };
 }
 
+// Circle's bundler rejects user operations whose maxPriorityFeePerGas is below 1 gwei ("precheck failed:
+// maxPriorityFeePerGas is 0 but must be at least 1000000000"), and Arc's fee estimate returns a 0 priority fee.
+const MIN_PRIORITY_FEE_PER_GAS = BigInt(1_000_000_000); // 1 gwei
+
 export async function getSmartAccount(passkey: StoredPasskey) {
   const { client, transport, owner } = clients(passkey);
   const account = await toCircleSmartAccount({ client, owner });
-  const bundler = createBundlerClient({ account, chain: arcTestnet, transport, client });
+  const bundler = createBundlerClient({
+    account,
+    chain: arcTestnet,
+    transport,
+    client,
+    // Fees for every user operation (the sponsored attempt and the unsponsored retry):
+    // priority fee = max(estimate, 1 gwei); max fee = max(estimate with viem's usual 2x buffer, priority fee).
+    userOperation: {
+      async estimateFeesPerGas() {
+        const estimate = await client.estimateFeesPerGas({ type: "eip1559" });
+        const maxPriorityFeePerGas =
+          estimate.maxPriorityFeePerGas > MIN_PRIORITY_FEE_PER_GAS ? estimate.maxPriorityFeePerGas : MIN_PRIORITY_FEE_PER_GAS;
+        const bufferedMaxFee = BigInt(2) * estimate.maxFeePerGas;
+        const maxFeePerGas = bufferedMaxFee > maxPriorityFeePerGas ? bufferedMaxFee : maxPriorityFeePerGas;
+        return { maxFeePerGas, maxPriorityFeePerGas };
+      },
+    },
+  });
   return { account, bundler };
 }
 
